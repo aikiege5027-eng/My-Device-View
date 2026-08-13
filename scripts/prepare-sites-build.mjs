@@ -1,4 +1,4 @@
-import { cp, mkdir, rm } from 'node:fs/promises';
+import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 
 await rm('dist/client', { recursive: true, force: true });
 await mkdir('dist/client', { recursive: true });
@@ -8,4 +8,11 @@ await Promise.all([
   cp('dist/_expo', 'dist/client/_expo', { recursive: true }),
 ]);
 await mkdir('dist/server', { recursive: true });
-await cp('worker.mjs', 'dist/server/index.js');
+const [workerSource, indexHtml] = await Promise.all([
+  readFile('worker.mjs', 'utf8'),
+  readFile('dist/index.html', 'utf8'),
+]);
+await writeFile(
+  'dist/server/index.js',
+  workerSource.replace('__INDEX_HTML__', JSON.stringify(indexHtml)),
+);
