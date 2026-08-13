@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "name": "设备详情",
+    "slug": "my-device-view",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": ["assets/**/*"],
+    "ios": { "supportsTablet": false },
+    "android": { "edgeToEdgeEnabled": true }
+  }
+}

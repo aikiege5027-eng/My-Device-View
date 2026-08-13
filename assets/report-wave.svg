@@ -1,0 +1,25 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="311" height="108" viewBox="0 0 311 108" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Mask group">
+<mask id="mask0_0_149" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="311" height="108">
+<rect id="Rectangle 1154" width="311" height="108" rx="10" fill="url(#paint0_linear_0_149)"/>
+</mask>
+<g mask="url(#mask0_0_149)">
+<path id="Vector 193" d="M64 129L254.495 -8H330V129H64Z" fill="url(#paint1_linear_0_149)" stroke="white" stroke-opacity="0.1"/>
+<path id="Vector 194" d="M207 129L295.086 -8H330V129H207Z" fill="url(#paint2_linear_0_149)" stroke="white" stroke-opacity="0.1"/>
+</g>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_149" x1="0" y1="54" x2="311" y2="54" gradientUnits="userSpaceOnUse">
+<stop stop-color="#1450F5"/>
+<stop offset="1" stop-color="#4373F7"/>
+</linearGradient>
+<linearGradient id="paint1_linear_0_149" x1="314" y1="-42" x2="114.5" y2="101.5" gradientUnits="userSpaceOnUse">
+<stop stop-color="#7876FD"/>
+<stop offset="1" stop-color="#7296F9"/>
+</linearGradient>
+<linearGradient id="paint2_linear_0_149" x1="322.602" y1="-42" x2="196.565" y2="-0.0793937" gradientUnits="userSpaceOnUse">
+<stop stop-color="#7876FD"/>
+<stop offset="1" stop-color="#4373F7"/>
+</linearGradient>
+</defs>
+</svg>
