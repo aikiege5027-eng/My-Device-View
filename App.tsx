@@ -338,6 +338,12 @@ function LiftFlowDialog({
           <View style={styles.dialogCard}>
             <View style={styles.dialogContent}>
               <Text style={styles.dialogTitle}>{mode === 'confirm' ? '远程呼梯确认' : mode === 'success' ? '远程呼梯成功' : mode === 'occupied' ? '检测到轿厢内有人' : '远程呼梯失败'}</Text>
+              {mode === 'confirm' && (
+                <View accessibilityRole="alert" style={styles.operationLimitNotice}>
+                  <View style={styles.operationLimitIcon}><Text style={styles.operationLimitMark}>!</Text></View>
+                  <Text style={styles.operationLimitText}>1 小时内只允许远程操作 2 次，当前为第 {attemptNumber} 次</Text>
+                </View>
+              )}
               <Text style={styles.dialogBody}>
                 {mode === 'confirm'
                   ? '系统将尝试远程呼叫电梯并使其回到起始层，执行过程中「远程重启」不可操作。'
@@ -347,12 +353,6 @@ function LiftFlowDialog({
                       ? '出于安全考虑，有人时不执行远程移动。请确认无人后再操作，或前往现场处理。'
                       : '电梯未响应远程呼梯，可再次呼梯，或尝试远程重启（重启含自动呼梯）。'}
               </Text>
-              {mode === 'confirm' && (
-                <View accessibilityRole="alert" style={styles.operationLimitNotice}>
-                  <View style={styles.operationLimitIcon}><Text style={styles.operationLimitMark}>!</Text></View>
-                  <Text style={styles.operationLimitText}>1 小时内只允许远程操作 2 次，当前为第 {attemptNumber} 次</Text>
-                </View>
-              )}
             </View>
             <View style={styles.dialogFooter}>
               {mode === 'confirm' ? (
@@ -428,6 +428,12 @@ function RestartFlowDialog({
           <View style={styles.dialogCard}>
             <View style={styles.dialogContent}>
               <Text style={styles.dialogTitle}>{mode === 'confirm' ? '远程重启确认' : mode === 'success' ? '远程重启成功' : '设备重启无响应'}</Text>
+              {mode === 'confirm' && (
+                <View accessibilityRole="alert" style={styles.operationLimitNotice}>
+                  <View style={styles.operationLimitIcon}><Text style={styles.operationLimitMark}>!</Text></View>
+                  <Text style={styles.operationLimitText}>1 小时内只允许远程重启 1 次，当前为第 {attemptNumber} 次</Text>
+                </View>
+              )}
               <Text style={styles.dialogBody}>
                 {mode === 'confirm'
                   ? '系统将重启电梯控制系统，并在重启后自动执行一次远程呼梯（无需再手动呼梯）'
@@ -435,12 +441,6 @@ function RestartFlowDialog({
                     ? '重启后自动呼梯成功，电梯已回到起始层，状态显示正常。请与客户共同确认电梯是否已恢复正常'
                     : '电梯对远程重启无响应，远程手段已无法恢复。请立即安排维保员工前往现场修梯。'}
               </Text>
-              {mode === 'confirm' && (
-                <View accessibilityRole="alert" style={styles.operationLimitNotice}>
-                  <View style={styles.operationLimitIcon}><Text style={styles.operationLimitMark}>!</Text></View>
-                  <Text style={styles.operationLimitText}>1 小时内只允许远程重启 1 次，当前为第 {attemptNumber} 次</Text>
-                </View>
-              )}
             </View>
             <View style={styles.dialogFooter}>
               {mode === 'confirm' ? (
@@ -610,11 +610,15 @@ function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: ()
   const [restartProgress, setRestartProgress] = useState(0);
   const [liftAttemptNumber, setLiftAttemptNumber] = useState(1);
   const [restartAttemptNumber, setRestartAttemptNumber] = useState(1);
+  const [liftLimitReached, setLiftLimitReached] = useState(false);
+  const [restartLimitReached, setRestartLimitReached] = useState(false);
   const [records, setRecords] = useState<OperationRecord[]>([]);
   const [devicePage, setDevicePage] = useState<'detail' | 'records'>('detail');
   const progressTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const resultTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const restartTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const liftLimitResetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const restartLimitResetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const liftOperationWindow = useRef<OperationWindow>(null);
   const restartOperationWindow = useRef<OperationWindow>(null);
 
@@ -622,6 +626,8 @@ function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: ()
     if (progressTimer.current) clearInterval(progressTimer.current);
     if (resultTimer.current) clearTimeout(resultTimer.current);
     if (restartTimer.current) clearInterval(restartTimer.current);
+    if (liftLimitResetTimer.current) clearTimeout(liftLimitResetTimer.current);
+    if (restartLimitResetTimer.current) clearTimeout(restartLimitResetTimer.current);
   }, []);
 
   const startRemoteLift = () => {
@@ -638,6 +644,16 @@ function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: ()
     const nextCount = activeWindow.count + 1;
     liftOperationWindow.current = { ...activeWindow, count: nextCount };
     setLiftAttemptNumber(nextCount);
+    setLiftLimitReached(nextCount >= 2);
+    if (!currentWindow || now - currentWindow.startedAt >= ONE_HOUR_MS) {
+      if (liftLimitResetTimer.current) clearTimeout(liftLimitResetTimer.current);
+      liftLimitResetTimer.current = setTimeout(() => {
+        liftLimitResetTimer.current = null;
+        liftOperationWindow.current = null;
+        setLiftAttemptNumber(1);
+        setLiftLimitReached(false);
+      }, ONE_HOUR_MS);
+    }
     setProgress(0);
     setLiftDialog('progress');
     const startedAt = Date.now();
@@ -715,6 +731,16 @@ function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: ()
     const nextCount = activeWindow.count + 1;
     restartOperationWindow.current = { ...activeWindow, count: nextCount };
     setRestartAttemptNumber(nextCount);
+    setRestartLimitReached(true);
+    if (!currentWindow || now - currentWindow.startedAt >= ONE_HOUR_MS) {
+      if (restartLimitResetTimer.current) clearTimeout(restartLimitResetTimer.current);
+      restartLimitResetTimer.current = setTimeout(() => {
+        restartLimitResetTimer.current = null;
+        restartOperationWindow.current = null;
+        setRestartAttemptNumber(1);
+        setRestartLimitReached(false);
+      }, ONE_HOUR_MS);
+    }
     setRestartProgress(0);
     setRestartDialog('progress');
     const startedAt = Date.now();
@@ -818,14 +844,21 @@ function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: ()
           {deviceType === 'KCECPUC' && (
             <Pressable
               accessibilityLabel="远程重启"
-              disabled={!restartEnabled}
+              disabled={!restartEnabled || restartLimitReached}
               onPress={openRestartScenario}
-              style={({ pressed }) => [styles.actionButton, !restartEnabled && styles.actionButtonDisabled, pressed && styles.pressed]}
+              style={({ pressed }) => [styles.actionButton, (!restartEnabled || restartLimitReached) && styles.actionButtonDisabled, pressed && styles.pressed]}
             >
-              <Text style={[styles.actionText, !restartEnabled && styles.actionTextDisabled]}>远程重启</Text>
+              <Text style={[styles.actionText, (!restartEnabled || restartLimitReached) && styles.actionTextDisabled]}>远程重启</Text>
             </Pressable>
           )}
-          <Pressable accessibilityLabel="远程呼梯" onPress={openLiftScenario} style={({ pressed }) => [styles.actionButton, pressed && styles.pressed]}><Text style={styles.actionText}>远程呼梯</Text></Pressable>
+          <Pressable
+            accessibilityLabel="远程呼梯"
+            disabled={liftLimitReached}
+            onPress={openLiftScenario}
+            style={({ pressed }) => [styles.actionButton, liftLimitReached && styles.actionButtonDisabled, pressed && styles.pressed]}
+          >
+            <Text style={[styles.actionText, liftLimitReached && styles.actionTextDisabled]}>远程呼梯</Text>
+          </Pressable>
         </View>
       </SafeAreaView>
 
