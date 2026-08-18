@@ -35,8 +35,8 @@ const ONE_HOUR_MS = 60 * 60 * 1000;
 
 type Tab = '实时状态' | '日在线率趋势' | '数据统计' | '设备事件';
 type Metric = { label: string; value: string; unit?: string; icon?: 'up' | 'door' | 'check' | 'gauge' };
-type LiftScenario = 'success' | 'failure' | 'occupied' | 'weightUnavailable';
-type LiftDialog = 'hidden' | 'scenario' | 'confirm' | 'progress' | 'progressError' | 'success' | 'failure' | 'occupied' | 'weightUnavailable';
+type LiftScenario = 'success' | 'failure' | 'occupied' | 'weightUnavailable' | 'markedFloorUnavailable';
+type LiftDialog = 'hidden' | 'scenario' | 'confirm' | 'progress' | 'progressError' | 'success' | 'failure' | 'occupied' | 'weightUnavailable' | 'markedFloorUnavailable';
 type RestartScenario = 'success' | 'failure';
 type RestartDialog = 'hidden' | 'scenario' | 'confirm' | 'progress' | 'progressError' | 'success' | 'failure';
 type DeviceType = 'KCECPUC' | 'LCE';
@@ -328,6 +328,12 @@ function LiftFlowDialog({
                 <View style={styles.scenarioCopy}><Text style={styles.scenarioTitle}>称重数据无法获取</Text><Text style={styles.scenarioDescription}>演示称重数据缺失并阻止远程操作</Text></View>
                 <Text style={styles.scenarioChevron}>›</Text>
               </Pressable>
+              <View style={styles.scenarioDivider} />
+              <Pressable onPress={() => onSelectScenario('markedFloorUnavailable')} style={({ pressed }) => [styles.scenarioOption, pressed && styles.pressed]}>
+                <View style={[styles.scenarioIcon, styles.scenarioWarningIcon]}><Text style={styles.scenarioWarningMark}>!</Text></View>
+                <View style={styles.scenarioCopy}><Text style={styles.scenarioTitle}>标记楼层无法获取</Text><Text style={styles.scenarioDescription}>演示标记楼层缺失并阻止远程操作</Text></View>
+                <Text style={styles.scenarioChevron}>›</Text>
+              </Pressable>
             </View>
             <View style={styles.scenarioCancelWrap}><DialogButton variant="secondary" onPress={onCancel}>取消</DialogButton></View>
           </View>
@@ -347,7 +353,7 @@ function LiftFlowDialog({
         ) : (
           <View style={styles.dialogCard}>
             <View style={styles.dialogContent}>
-              <Text style={styles.dialogTitle}>{mode === 'confirm' ? '远程呼梯确认' : mode === 'success' ? '远程呼梯成功' : mode === 'occupied' ? '检测到轿厢内有人' : mode === 'weightUnavailable' ? '称重数据无法获取' : '远程呼梯失败'}</Text>
+              <Text style={styles.dialogTitle}>{mode === 'confirm' ? '远程呼梯确认' : mode === 'success' ? '远程呼梯成功' : mode === 'occupied' ? '检测到轿厢内有人' : mode === 'weightUnavailable' ? '称重数据无法获取' : mode === 'markedFloorUnavailable' ? '标记楼层无法获取' : '远程呼梯失败'}</Text>
               {mode === 'confirm' && (
                 <View accessibilityRole="alert" style={styles.operationLimitNotice}>
                   <NoticeWarning width={22} height={22} />
@@ -363,6 +369,8 @@ function LiftFlowDialog({
                       ? '出于安全考虑，有人时不执行远程移动。请确认无人后再操作。'
                       : mode === 'weightUnavailable'
                         ? '系统无法获取电梯称重数据，出于安全考虑，无法远程操作'
+                        : mode === 'markedFloorUnavailable'
+                          ? '系统无法获取标记楼层，出于安全考虑，无法远程操作。'
                         : '电梯未响应远程呼梯，可再次呼梯，或尝试远程重启（重启含自动呼梯）。'}
               </Text>
             </View>
@@ -702,7 +710,7 @@ function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: ()
   };
 
   const acknowledgeResult = () => {
-    if (liftDialog === 'occupied' || liftDialog === 'weightUnavailable') {
+    if (liftDialog === 'occupied' || liftDialog === 'weightUnavailable' || liftDialog === 'markedFloorUnavailable') {
       setLiftDialog('hidden');
       return;
     }
@@ -723,7 +731,7 @@ function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: ()
 
   const selectScenario = (scenario: LiftScenario) => {
     setLiftScenario(scenario);
-    setLiftDialog(scenario === 'occupied' || scenario === 'weightUnavailable' ? scenario : 'confirm');
+    setLiftDialog(scenario === 'occupied' || scenario === 'weightUnavailable' || scenario === 'markedFloorUnavailable' ? scenario : 'confirm');
   };
 
   const openLiftScenario = () => {
