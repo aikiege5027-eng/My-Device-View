@@ -25,6 +25,7 @@ import ElevatorDoor from './assets/elevator-door.svg';
 import Location from './assets/location.svg';
 import OperationChevron from './assets/operation-chevron.svg';
 import ReportWave from './assets/report-wave.svg';
+import NoticeWarning from './assets/notice-warning.svg';
 
 const BLUE = '#1450F5';
 const BG = '#F2F4F7';
@@ -34,8 +35,8 @@ const ONE_HOUR_MS = 60 * 60 * 1000;
 
 type Tab = '实时状态' | '日在线率趋势' | '数据统计' | '设备事件';
 type Metric = { label: string; value: string; unit?: string; icon?: 'up' | 'door' | 'check' | 'gauge' };
-type LiftScenario = 'success' | 'failure' | 'occupied';
-type LiftDialog = 'hidden' | 'scenario' | 'confirm' | 'progress' | 'progressError' | 'success' | 'failure' | 'occupied';
+type LiftScenario = 'success' | 'failure' | 'occupied' | 'weightUnavailable';
+type LiftDialog = 'hidden' | 'scenario' | 'confirm' | 'progress' | 'progressError' | 'success' | 'failure' | 'occupied' | 'weightUnavailable';
 type RestartScenario = 'success' | 'failure';
 type RestartDialog = 'hidden' | 'scenario' | 'confirm' | 'progress' | 'progressError' | 'success' | 'failure';
 type DeviceType = 'KCECPUC' | 'LCE';
@@ -46,14 +47,14 @@ type OperationRecord = {
   id: string;
   type: OperationType;
   result: OperationResult;
-  sequence: number;
   operator: string;
   operatedAt: string;
-  fault: string;
+  snSnapshot: string;
+  detailLabel: '楼层轨迹' | '失败原因';
+  detailValue: string;
 };
 
 const tabs: Tab[] = ['实时状态', '日在线率趋势', '数据统计', '设备事件'];
-const DEVICE_FAULT = '设备 SN 30267187 · SN003139 · KCECPUC · 门锁回路瞬时断开，轿厢停于非平层';
 
 function formatOperationTime(date = new Date()) {
   const pad = (value: number) => String(value).padStart(2, '0');
@@ -276,6 +277,7 @@ function DialogButton({
 function LiftFlowDialog({
   mode,
   progress,
+  currentFloor,
   attemptNumber,
   onCancel,
   onSelectScenario,
@@ -284,6 +286,7 @@ function LiftFlowDialog({
 }: {
   mode: LiftDialog;
   progress: number;
+  currentFloor: number;
   attemptNumber: number;
   onCancel: () => void;
   onSelectScenario: (scenario: LiftScenario) => void;
@@ -319,6 +322,12 @@ function LiftFlowDialog({
                 <View style={styles.scenarioCopy}><Text style={styles.scenarioTitle}>检测到轿厢内有人</Text><Text style={styles.scenarioDescription}>演示检测到乘客并阻止远程呼梯</Text></View>
                 <Text style={styles.scenarioChevron}>›</Text>
               </Pressable>
+              <View style={styles.scenarioDivider} />
+              <Pressable onPress={() => onSelectScenario('weightUnavailable')} style={({ pressed }) => [styles.scenarioOption, pressed && styles.pressed]}>
+                <View style={[styles.scenarioIcon, styles.scenarioWarningIcon]}><Text style={styles.scenarioWarningMark}>!</Text></View>
+                <View style={styles.scenarioCopy}><Text style={styles.scenarioTitle}>称重数据无法获取</Text><Text style={styles.scenarioDescription}>演示称重数据缺失并阻止远程操作</Text></View>
+                <Text style={styles.scenarioChevron}>›</Text>
+              </Pressable>
             </View>
             <View style={styles.scenarioCancelWrap}><DialogButton variant="secondary" onPress={onCancel}>取消</DialogButton></View>
           </View>
@@ -333,15 +342,16 @@ function LiftFlowDialog({
                 ? <View style={styles.progressErrorIcon}><CloseCircleFilled width={20} height={20} /></View>
                 : <Text style={styles.progressText}>{progress}%</Text>}
             </View>
+            <Text style={styles.currentFloorText}>当前楼层：{currentFloor}F</Text>
           </View>
         ) : (
           <View style={styles.dialogCard}>
             <View style={styles.dialogContent}>
-              <Text style={styles.dialogTitle}>{mode === 'confirm' ? '远程呼梯确认' : mode === 'success' ? '远程呼梯成功' : mode === 'occupied' ? '检测到轿厢内有人' : '远程呼梯失败'}</Text>
+              <Text style={styles.dialogTitle}>{mode === 'confirm' ? '远程呼梯确认' : mode === 'success' ? '远程呼梯成功' : mode === 'occupied' ? '检测到轿厢内有人' : mode === 'weightUnavailable' ? '称重数据无法获取' : '远程呼梯失败'}</Text>
               {mode === 'confirm' && (
                 <View accessibilityRole="alert" style={styles.operationLimitNotice}>
-                  <View style={styles.operationLimitIcon}><Text style={styles.operationLimitMark}>!</Text></View>
-                  <Text style={styles.operationLimitText}>1 小时内只允许远程操作 2 次，当前为第 {attemptNumber} 次</Text>
+                  <NoticeWarning width={22} height={22} />
+                  <Text style={styles.operationLimitText}>1 小时内只允许远程呼梯 2 次，当前为第 {attemptNumber} 次。</Text>
                 </View>
               )}
               <Text style={styles.dialogBody}>
@@ -350,8 +360,10 @@ function LiftFlowDialog({
                   : mode === 'success'
                     ? '电梯已恢复移动并回到起始层，请与客户共同确认电梯是否已恢复正常，并判断是否仍需前往现场。'
                     : mode === 'occupied'
-                      ? '出于安全考虑，有人时不执行远程移动。请确认无人后再操作，或前往现场处理。'
-                      : '电梯未响应远程呼梯，可再次呼梯，或尝试远程重启（重启含自动呼梯）。'}
+                      ? '出于安全考虑，有人时不执行远程移动。请确认无人后再操作。'
+                      : mode === 'weightUnavailable'
+                        ? '系统无法获取电梯称重数据，出于安全考虑，无法远程操作'
+                        : '电梯未响应远程呼梯，可再次呼梯，或尝试远程重启（重启含自动呼梯）。'}
               </Text>
             </View>
             <View style={styles.dialogFooter}>
@@ -430,8 +442,8 @@ function RestartFlowDialog({
               <Text style={styles.dialogTitle}>{mode === 'confirm' ? '远程重启确认' : mode === 'success' ? '远程重启成功' : '设备重启无响应'}</Text>
               {mode === 'confirm' && (
                 <View accessibilityRole="alert" style={styles.operationLimitNotice}>
-                  <View style={styles.operationLimitIcon}><Text style={styles.operationLimitMark}>!</Text></View>
-                  <Text style={styles.operationLimitText}>1 小时内只允许远程重启 1 次，当前为第 {attemptNumber} 次</Text>
+                  <NoticeWarning width={22} height={22} />
+                  <Text style={styles.operationLimitText}>1 小时内只允许远程重启 1 次，当前为第 {attemptNumber} 次。</Text>
                 </View>
               )}
               <Text style={styles.dialogBody}>
@@ -579,6 +591,14 @@ function OperationRecordCard({ record }: { record: OperationRecord }) {
           <Text style={styles.operationMetaLabel}>操作时间</Text>
           <Text style={styles.operationMetaValue}>{record.operatedAt}</Text>
         </View>
+        <View style={styles.operationMetaRow}>
+          <Text style={styles.operationMetaLabel}>SN快照</Text>
+          <Text style={styles.operationMetaValue}>{record.snSnapshot}</Text>
+        </View>
+        <View style={styles.operationMetaRow}>
+          <Text style={styles.operationMetaLabel}>{record.detailLabel}</Text>
+          <Text numberOfLines={1} style={styles.operationMetaValue}>{record.detailValue}</Text>
+        </View>
       </View>
     </View>
   );
@@ -604,6 +624,7 @@ function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: ()
   const [liftDialog, setLiftDialog] = useState<LiftDialog>('hidden');
   const [liftScenario, setLiftScenario] = useState<LiftScenario>('success');
   const [progress, setProgress] = useState(0);
+  const [currentFloor, setCurrentFloor] = useState(5);
   const [restartEnabled, setRestartEnabled] = useState(false);
   const [restartDialog, setRestartDialog] = useState<RestartDialog>('hidden');
   const [restartScenario, setRestartScenario] = useState<RestartScenario>('success');
@@ -655,12 +676,14 @@ function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: ()
       }, ONE_HOUR_MS);
     }
     setProgress(0);
+    setCurrentFloor(5);
     setLiftDialog('progress');
     const startedAt = Date.now();
     progressTimer.current = setInterval(() => {
       const elapsed = Date.now() - startedAt;
       const nextProgress = Math.min(100, Math.round((elapsed / 6000) * 100));
       setProgress(nextProgress);
+      setCurrentFloor(Math.max(1, 5 - Math.floor(nextProgress / 20)));
       if (liftScenario === 'failure' && elapsed >= 4200) {
         if (progressTimer.current) clearInterval(progressTimer.current);
         progressTimer.current = null;
@@ -679,7 +702,7 @@ function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: ()
   };
 
   const acknowledgeResult = () => {
-    if (liftDialog === 'occupied') {
+    if (liftDialog === 'occupied' || liftDialog === 'weightUnavailable') {
       setLiftDialog('hidden');
       return;
     }
@@ -688,10 +711,11 @@ function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: ()
       id: `lift-${Date.now()}`,
       type: 'lift',
       result,
-      sequence: current.filter((record) => record.type === 'lift').length + 1,
       operator: '李维保',
       operatedAt: formatOperationTime(),
-      fault: DEVICE_FAULT,
+      snSnapshot: 'SN000000',
+      detailLabel: result === 'success' ? '楼层轨迹' : '失败原因',
+      detailValue: result === 'success' ? '5F→1F' : '电梯未响应远程呼梯',
     }, ...current]);
     setRestartEnabled(true);
     setLiftDialog('hidden');
@@ -699,7 +723,7 @@ function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: ()
 
   const selectScenario = (scenario: LiftScenario) => {
     setLiftScenario(scenario);
-    setLiftDialog(scenario === 'occupied' ? 'occupied' : 'confirm');
+    setLiftDialog(scenario === 'occupied' || scenario === 'weightUnavailable' ? scenario : 'confirm');
   };
 
   const openLiftScenario = () => {
@@ -787,10 +811,11 @@ function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: ()
       id: `restart-${Date.now()}`,
       type: 'restart',
       result,
-      sequence: current.filter((record) => record.type === 'restart').length + 1,
       operator: '李维保',
       operatedAt: formatOperationTime(),
-      fault: DEVICE_FAULT,
+      snSnapshot: 'SN000000',
+      detailLabel: result === 'success' ? '楼层轨迹' : '失败原因',
+      detailValue: result === 'success' ? '5F→1F' : '电梯对远程重启无响应',
     }, ...current]);
     setRestartDialog('hidden');
   };
@@ -865,6 +890,7 @@ function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: ()
       <LiftFlowDialog
         mode={liftDialog}
         progress={progress}
+        currentFloor={currentFloor}
         attemptNumber={liftAttemptNumber}
         onCancel={() => setLiftDialog('hidden')}
         onSelectScenario={selectScenario}
@@ -991,10 +1017,8 @@ const styles = StyleSheet.create({
   dialogContent: { gap: 8, alignItems: 'center', paddingHorizontal: 24, paddingTop: 32 },
   dialogTitle: { width: '100%', color: '#141414', fontSize: 18, lineHeight: 26, fontWeight: '600', textAlign: 'center' },
   dialogBody: { width: '100%', color: '#676A72', fontSize: 16, lineHeight: 24, textAlign: 'center' },
-  operationLimitNotice: { width: '100%', marginTop: 4, paddingHorizontal: 12, paddingVertical: 10, flexDirection: 'row', alignItems: 'flex-start', gap: 8, borderWidth: StyleSheet.hairlineWidth, borderColor: '#FFD89A', borderRadius: 6, backgroundColor: '#FFF7E8' },
-  operationLimitIcon: { width: 18, height: 18, marginTop: 1, alignItems: 'center', justifyContent: 'center', borderRadius: 9, backgroundColor: '#F59A23' },
-  operationLimitMark: { color: '#FFFFFF', fontSize: 12, lineHeight: 16, fontWeight: '700' },
-  operationLimitText: { flex: 1, color: '#B85D00', fontSize: 13, lineHeight: 20, fontWeight: '600' },
+  operationLimitNotice: { width: '100%', padding: 8, flexDirection: 'row', alignItems: 'flex-start', gap: 8, borderRadius: 6, backgroundColor: '#FFF1DB' },
+  operationLimitText: { flex: 1, color: '#141414', fontSize: 14, lineHeight: 22 },
   scenarioDialogBody: { width: '100%', color: '#676A72', fontSize: 14, lineHeight: 22, textAlign: 'center' },
   scenarioOptions: { marginTop: 24, marginHorizontal: 24, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: '#DFE1E8', borderRadius: 8 },
   scenarioOption: { minHeight: 72, paddingHorizontal: 14, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#FFFFFF' },
@@ -1029,6 +1053,7 @@ const styles = StyleSheet.create({
   progressFillError: { backgroundColor: '#F51414' },
   progressText: { width: 36, color: '#141414', fontSize: 14, lineHeight: 22, textAlign: 'right' },
   progressErrorIcon: { width: 36, height: 22, alignItems: 'center', justifyContent: 'center' },
+  currentFloorText: { width: '100%', color: '#676A72', fontSize: 16, lineHeight: 24, textAlign: 'center' },
 
   recordsSafeArea: { flex: 1, backgroundColor: '#F5F7FA' },
   recordsScroll: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 16, gap: 8 },
