@@ -31,8 +31,8 @@ import UnratedStatus from '../assets/project-status-unrated.svg';
 import { colorThemes, typographyTokens } from '../designTokens';
 
 type ProjectDetailsViewProps = {
-  onBack: () => void;
   onOpenDeviceDetails: () => void;
+  titleRef?: React.Ref<Text>;
 };
 
 type DeviceItem = {
@@ -263,15 +263,19 @@ function DeviceList({ onOpenDeviceDetails }: { onOpenDeviceDetails: () => void }
   );
 }
 
-export function ProjectDetailsView({ onBack, onOpenDeviceDetails }: ProjectDetailsViewProps) {
+export function ProjectDetailsView({ onOpenDeviceDetails, titleRef }: ProjectDetailsViewProps) {
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <StatusBar backgroundColor={colors.background.container} barStyle="dark-content" />
       <View style={styles.navbar}>
-        <Pressable accessibilityLabel="返回云管家数据" accessibilityRole="button" hitSlop={12} onPress={onBack} style={styles.backButton}>
-          <ProjectBack accessibilityElementsHidden importantForAccessibility="no-hide-descendants" width={24} height={24} />
-        </Pressable>
-        <Text accessibilityRole="header" style={styles.navTitle}>项目详情</Text>
+        <View
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={styles.backButton}
+        >
+          <ProjectBack width={24} height={24} />
+        </View>
+        <Text accessibilityRole="header" ref={titleRef} style={styles.navTitle}>项目详情</Text>
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} style={styles.scroll}>
         <ProjectOverview />

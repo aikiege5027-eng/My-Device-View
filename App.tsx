@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
+  AccessibilityInfo,
+  findNodeHandle,
   Modal,
   Pressable,
   ScrollView,
@@ -39,6 +41,7 @@ import Location from './assets/location.svg';
 import OperationChevron from './assets/operation-chevron.svg';
 import ReportWave from './assets/report-wave.svg';
 import NoticeWarning from './assets/notice-warning.svg';
+import { DeviceBackDemoDialog } from './components/DeviceBackDemoDialog';
 import { DeviceDetailsView } from './components/DeviceDetailsView';
 import { DeviceDynamicsDialog } from './components/DeviceDynamicsDialog';
 import { ProjectDetailsView } from './components/ProjectDetailsView';
@@ -857,7 +860,12 @@ function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: ()
   const [restartLimitReached, setRestartLimitReached] = useState(false);
   const [records, setRecords] = useState<OperationRecord[]>([]);
   const [devicePage, setDevicePage] = useState<'detail' | 'records' | 'projectDetails' | 'fullDetails'>('detail');
+  const [deviceBackDemoVisible, setDeviceBackDemoVisible] = useState(false);
   const [deviceDynamicsVisible, setDeviceDynamicsVisible] = useState(false);
+  const cloudDataTitleRef = useRef<Text>(null);
+  const deviceDetailsBackRef = useRef<View>(null);
+  const pendingPageFocus = useRef<'detail' | 'projectDetails' | null>(null);
+  const projectDetailsTitleRef = useRef<Text>(null);
   const progressTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const resultTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const restartTimer = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -873,6 +881,20 @@ function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: ()
     if (liftLimitResetTimer.current) clearTimeout(liftLimitResetTimer.current);
     if (restartLimitResetTimer.current) clearTimeout(restartLimitResetTimer.current);
   }, []);
+
+  useEffect(() => {
+    const focusTarget = pendingPageFocus.current;
+    if (!focusTarget || focusTarget !== devicePage) return undefined;
+
+    pendingPageFocus.current = null;
+    const focusTimer = setTimeout(() => {
+      const targetRef = focusTarget === 'detail' ? cloudDataTitleRef : projectDetailsTitleRef;
+      const reactTag = targetRef.current ? findNodeHandle(targetRef.current) : null;
+      if (reactTag) AccessibilityInfo.setAccessibilityFocus(reactTag);
+    }, 100);
+
+    return () => clearTimeout(focusTimer);
+  }, [devicePage]);
 
   const startRemoteLift = () => {
     const now = Date.now();
@@ -1074,14 +1096,38 @@ function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: ()
   if (devicePage === 'projectDetails') {
     return (
       <ProjectDetailsView
-        onBack={() => setDevicePage('detail')}
         onOpenDeviceDetails={() => setDevicePage('fullDetails')}
+        titleRef={projectDetailsTitleRef}
       />
     );
   }
 
   if (devicePage === 'fullDetails') {
-    return <DeviceDetailsView onBack={() => setDevicePage('projectDetails')} />;
+    return (
+      <>
+        <DeviceDetailsView backButtonRef={deviceDetailsBackRef} onBack={() => setDeviceBackDemoVisible(true)} />
+        <DeviceBackDemoDialog
+          onClose={() => {
+            setDeviceBackDemoVisible(false);
+            setTimeout(() => {
+              const reactTag = deviceDetailsBackRef.current ? findNodeHandle(deviceDetailsBackRef.current) : null;
+              if (reactTag) AccessibilityInfo.setAccessibilityFocus(reactTag);
+            }, 100);
+          }}
+          onReturnToCloudData={() => {
+            pendingPageFocus.current = 'detail';
+            setDeviceBackDemoVisible(false);
+            setDevicePage('detail');
+          }}
+          onReturnToProjectDetails={() => {
+            pendingPageFocus.current = 'projectDetails';
+            setDeviceBackDemoVisible(false);
+            setDevicePage('projectDetails');
+          }}
+          visible={deviceBackDemoVisible}
+        />
+      </>
+    );
   }
 
   return (
@@ -1089,7 +1135,7 @@ function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: ()
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <View style={styles.navbar}>
         <Pressable accessibilityLabel="返回工单明细" hitSlop={12} style={styles.backButton} onPress={onBack}><Back width={10} height={17} /></Pressable>
-        <Text style={styles.navTitle}>云管家数据</Text>
+        <Text accessibilityRole="header" ref={cloudDataTitleRef} style={styles.navTitle}>云管家数据</Text>
       </View>
 
       <View style={styles.debugCard}>

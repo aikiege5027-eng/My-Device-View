@@ -53,6 +53,7 @@ export const colorThemes = {
       primary: '#141414',
       secondary: '#676A72',
       placeholder: '#8F9195',
+      white: '#FFFFFF',
       brand: '#1450F5',
       link: '#1450F5',
     },
@@ -118,6 +119,12 @@ export const typographyTokens = {
     fontSize: 14,
     lineHeight: 22,
     fontWeight: '600',
+  },
+  title16Regular: {
+    fontFamily: 'PingFang SC',
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: '400',
   },
   title16Semibold: {
     fontFamily: 'PingFang SC',

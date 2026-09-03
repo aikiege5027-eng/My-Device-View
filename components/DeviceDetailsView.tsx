@@ -30,6 +30,7 @@ type DetailTab = 'realtime' | 'trend' | 'summary' | 'events';
 type SensorValue = { label: string; value: string; unit?: string };
 
 type DeviceDetailsViewProps = {
+  backButtonRef?: React.Ref<View>;
   onBack: () => void;
 };
 
@@ -340,14 +341,14 @@ function DetailContent({ tab }: { tab: DetailTab }) {
 }
 
 /** Full device-details screen from Figma node 18039:23638. */
-export function DeviceDetailsView({ onBack }: DeviceDetailsViewProps) {
+export function DeviceDetailsView({ backButtonRef, onBack }: DeviceDetailsViewProps) {
   const [activeTab, setActiveTab] = useState<DetailTab>('realtime');
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={colorThemes.light.background.container} />
       <View style={styles.navbar}>
-        <Pressable accessibilityLabel="返回项目详情" accessibilityRole="button" hitSlop={12} onPress={onBack} style={styles.backButton}>
+        <Pressable accessibilityLabel="选择设备详情返回页面" accessibilityRole="button" hitSlop={12} onPress={onBack} ref={backButtonRef} style={styles.backButton}>
           <Back accessibilityElementsHidden importantForAccessibility="no-hide-descendants" width={10} height={17} />
         </Pressable>
         <Text accessibilityRole="header" style={styles.navTitle}>设备详情</Text>
