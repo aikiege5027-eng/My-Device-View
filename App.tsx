@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Modal,
@@ -12,20 +12,38 @@ import {
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
-import ArrowUp from './assets/arrow-up.svg';
 import Back from './assets/back.svg';
 import Building from './assets/building.svg';
-import Check from './assets/check.svg';
 import ChevronGray from './assets/chevron-gray.svg';
 import ChevronWhite from './assets/chevron-white.svg';
 import CloseCircleFilled from './assets/close-circle-filled.svg';
-import Dashboard from './assets/dashboard.svg';
 import Elevator from './assets/elevator.svg';
-import ElevatorDoor from './assets/elevator-door.svg';
+import IotArrowUp from './assets/iot-arrow-up.svg';
+import IotDoorCircuit from './assets/iot-door-circuit.svg';
+import IotDoorClosed from './assets/iot-door-closed.svg';
+import IotDoorOpen from './assets/iot-door-open.svg';
+import IotDoorZone from './assets/iot-door-zone.svg';
+import IotFloor from './assets/iot-floor.svg';
+import IotHumidity from './assets/iot-humidity.svg';
+import IotLevel from './assets/iot-level.svg';
+import IotMaintenance from './assets/iot-maintenance.svg';
+import IotNoise from './assets/iot-noise.svg';
+import IotSensorSpeed from './assets/iot-sensor-speed.svg';
+import IotService from './assets/iot-service.svg';
+import IotSpeed from './assets/iot-speed.svg';
+import IotTemperature from './assets/iot-temperature.svg';
+import IotVibrationHorizontal from './assets/iot-vibration-horizontal.svg';
+import IotVibrationLongitudinal from './assets/iot-vibration-longitudinal.svg';
+import IotVibrationVertical from './assets/iot-vibration-vertical.svg';
 import Location from './assets/location.svg';
 import OperationChevron from './assets/operation-chevron.svg';
 import ReportWave from './assets/report-wave.svg';
 import NoticeWarning from './assets/notice-warning.svg';
+import { DeviceDetailsView } from './components/DeviceDetailsView';
+import { DeviceDynamicsDialog } from './components/DeviceDynamicsDialog';
+import { ProjectDetailsView } from './components/ProjectDetailsView';
+import { WebScreenshotTool } from './components/WebScreenshotTool';
+import { colorThemes, typographyTokens } from './designTokens';
 
 const BLUE = '#1450F5';
 const BG = '#F2F4F7';
@@ -33,8 +51,31 @@ const LIGHT_BLUE = '#F3F6FE';
 const MUTED = '#717A80';
 const ONE_HOUR_MS = 60 * 60 * 1000;
 
-type Tab = '实时状态' | '日在线率趋势' | '数据统计' | '设备事件';
-type Metric = { label: string; value: string; unit?: string; icon?: 'up' | 'door' | 'check' | 'gauge' };
+type MetricIconName =
+  | 'floor'
+  | 'speed'
+  | 'service'
+  | 'doorClosed'
+  | 'doorOpen'
+  | 'doorZone'
+  | 'temperature'
+  | 'humidity'
+  | 'sensorSpeed'
+  | 'level'
+  | 'vibrationHorizontal'
+  | 'vibrationLongitudinal'
+  | 'vibrationVertical'
+  | 'noise'
+  | 'maintenance'
+  | 'doorCircuit';
+type Metric = {
+  label: string;
+  value: string;
+  unit?: string;
+  icon?: MetricIconName;
+  direction?: 'up';
+  tone?: 'default' | 'error';
+};
 type LiftScenario = 'success' | 'failure' | 'occupied' | 'weightUnavailable' | 'markedFloorUnavailable';
 type LiftDialog = 'hidden' | 'scenario' | 'confirm' | 'progress' | 'progressError' | 'success' | 'failure' | 'occupied' | 'weightUnavailable' | 'markedFloorUnavailable';
 type RestartScenario = 'success' | 'failure';
@@ -54,73 +95,141 @@ type OperationRecord = {
   detailValue: string;
 };
 
-const tabs: Tab[] = ['实时状态', '日在线率趋势', '数据统计', '设备事件'];
-
 function formatOperationTime(date = new Date()) {
   const pad = (value: number) => String(value).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 }
 
 const realtime: Metric[] = [
-  { label: '当前楼层', value: '1', icon: 'up' },
-  { label: '梯门状态', value: '已关', icon: 'door' },
-  { label: '门区状态', value: '在门区' },
-  { label: '运行速度', value: '2.4', unit: 'm/s', icon: 'gauge' },
-  { label: '服务模式', value: '正常', icon: 'check' },
-  { label: '实时载重', value: '60', unit: '%' },
-  { label: '上次内呼', value: '125', unit: 's前' },
-  { label: '上次外呼', value: '暂无' },
+  { label: '当前楼层', value: '1F [5]', icon: 'floor', direction: 'up' },
+  { label: '运行速度', value: '2', unit: 'm/s', icon: 'speed' },
+  { label: '服务模式', value: '正常', icon: 'service' },
+  { label: '轿门A状态', value: '已关门', icon: 'doorClosed' },
+  { label: '轿门B状态', value: '已开门', icon: 'doorOpen' },
+  { label: '门区状态', value: '在门区', icon: 'doorZone' },
 ];
 
 const doorA: Metric[] = [
-  { label: '温度', value: '23.5', unit: '℃' },
-  { label: '湿度', value: '23.5', unit: '%' },
-  { label: '速度', value: '2.1', unit: 'm/s' },
-  { label: '平层感应上', value: '0' },
-  { label: '平层感应下', value: '1' },
+  { label: '温度', value: '23.5', unit: '℃', icon: 'temperature' },
+  { label: '湿度', value: '58.1', unit: '%', icon: 'humidity' },
+  { label: '速度', value: '2', unit: 'm/s', icon: 'sensorSpeed' },
+  { label: '平层感应', value: '水平', icon: 'level' },
+  { label: '横向振动', value: '12', unit: 'mg', icon: 'vibrationHorizontal' },
+  { label: '纵向振动', value: '8', unit: 'mg', icon: 'vibrationLongitudinal' },
+  { label: '垂直振动', value: '4', unit: 'mg', icon: 'vibrationVertical' },
+  { label: '噪音', value: '50', unit: 'dB', icon: 'noise' },
 ];
 
 const doorB: Metric[] = [
-  { label: '温度', value: '23.5', unit: '℃' },
-  { label: '湿度', value: '23.5', unit: '%' },
-  { label: '速度', value: '2.1', unit: 'm/s' },
-  { label: '平层感应上', value: '--' },
-  { label: '平层感应下', value: '--' },
+  { label: '温度', value: '23.5', unit: '℃', icon: 'temperature' },
+  { label: '湿度', value: '58.1', unit: '%', icon: 'humidity' },
+  { label: '速度', value: '2', unit: 'm/s', icon: 'sensorSpeed' },
+  { label: '平层感应', value: '水平', icon: 'level' },
+  { label: '横向振动', value: '12', unit: 'mg', icon: 'vibrationHorizontal' },
+  { label: '纵向振动', value: '8', unit: 'mg', icon: 'vibrationLongitudinal' },
+  { label: '垂直振动', value: '4', unit: 'mg', icon: 'vibrationVertical' },
+  { label: '噪音', value: '50', unit: 'dB', icon: 'noise' },
 ];
 
 const machineRoom: Metric[] = [
-  { label: '温度', value: '23.5', unit: '℃' },
-  { label: '湿度', value: '23.5', unit: '%' },
-  { label: '检修回路', value: '402' },
-  { label: '厅门A回路', value: '403' },
-  { label: '厅门B回路', value: '403' },
-  { label: '轿门A回路', value: '406' },
-  { label: '轿门B回路', value: '402' },
+  { label: '温度', value: '23.5', unit: '℃', icon: 'temperature' },
+  { label: '湿度', value: '58.1', unit: '%', icon: 'humidity' },
+  { label: '检修回路', value: '402', icon: 'maintenance' },
+  { label: '厅门A回路', value: '302', icon: 'doorCircuit', tone: 'error' },
+  { label: '厅门B回路', value: '302', icon: 'doorCircuit', tone: 'error' },
 ];
 
-function MetricCard({ item, index }: { item: Metric; index: number }) {
+type EventSummaryRow = {
+  label: string;
+  beforeWorkOrder: string;
+  afterWorkOrder: string;
+};
+
+const eventSummaryRows: EventSummaryRow[] = [
+  { label: '故障消息', beforeWorkOrder: '0048 × 1', afterWorkOrder: '无新增' },
+  { label: '开关门次数', beforeWorkOrder: '18 次', afterWorkOrder: '12 次' },
+  { label: '内外呼', beforeWorkOrder: '内 6 · 外 8', afterWorkOrder: '内 4 · 外 6' },
+  { label: '楼层变化', beforeWorkOrder: '6F → 10F', afterWorkOrder: '10F → 10F' },
+  { label: '载重变化', beforeWorkOrder: '120 → 368kg', afterWorkOrder: '368 → 286kg' },
+];
+
+type MetricVariant = 'realtime' | 'sensor';
+
+function MetricIcon({ icon }: { icon: MetricIconName }) {
+  if (icon === 'floor') return <IotFloor width={20} height={20} />;
+  if (icon === 'speed') return <IotSpeed width={20} height={20} />;
+  if (icon === 'service') return <IotService width={20} height={20} />;
+  if (icon === 'doorClosed') return <IotDoorClosed width={20} height={20} />;
+  if (icon === 'doorOpen') return <IotDoorOpen width={20} height={20} />;
+  if (icon === 'doorZone') return <IotDoorZone width={20} height={20} />;
+  if (icon === 'temperature') return <IotTemperature width={20} height={20} />;
+  if (icon === 'humidity') return <IotHumidity width={20} height={20} />;
+  if (icon === 'sensorSpeed') return <IotSensorSpeed width={20} height={20} />;
+  if (icon === 'level') return <IotLevel width={20} height={20} />;
+  if (icon === 'vibrationHorizontal') return <IotVibrationHorizontal width={20} height={20} />;
+  if (icon === 'vibrationLongitudinal') return <IotVibrationLongitudinal width={20} height={20} />;
+  if (icon === 'vibrationVertical') return <IotVibrationVertical width={20} height={20} />;
+  if (icon === 'noise') return <IotNoise width={20} height={20} />;
+  if (icon === 'maintenance') return <IotMaintenance width={20} height={20} />;
+  return <IotDoorCircuit width={20} height={20} />;
+}
+
+function MetricCard({ item, variant, width }: { item: Metric; variant: MetricVariant; width: number }) {
+  const displayValue = `${item.value}${item.unit ?? ''}`;
+
   return (
-    <View style={styles.metricCard}>
+    <View testID="capture-three-column-item" style={[styles.metricCard, { width }]}>
       <Text numberOfLines={1} style={styles.metricLabel}>{item.label}</Text>
-      <View style={styles.metricValueRow}>
-        {item.icon === 'up' && <ArrowUp width={17} height={17} />}
-        {item.icon === 'door' && <ElevatorDoor width={18} height={18} />}
-        {item.icon === 'check' && <Check width={18} height={18} />}
-        {item.icon === 'gauge' && <Dashboard width={18} height={18} />}
-        <Text style={[styles.metricValue, item.icon && styles.metricValueSmall]}>{item.value}</Text>
-        {!!item.unit && <Text style={styles.metricUnit}>{item.unit}</Text>}
+      <View style={[styles.metricIconSurface, variant === 'sensor' ? styles.sensorMetricIconSurface : styles.realtimeMetricIconSurface]}>
+        {item.icon && <MetricIcon icon={item.icon} />}
       </View>
-      {index === 0 && item.icon === 'up' && <Text style={styles.floorCode}>[5]</Text>}
+      <View style={styles.metricValueRow}>
+        <Text style={[styles.metricValue, item.tone === 'error' && styles.metricValueError]}>{displayValue}</Text>
+        {item.direction === 'up' && <IotArrowUp width={22} height={22} />}
+      </View>
     </View>
   );
 }
 
-function MetricGrid({ data }: { data: Metric[] }) {
-  return <View style={styles.metricGrid}>{data.map((item, index) => <MetricCard key={item.label} item={item} index={index} />)}</View>;
+function MetricGrid({ data, variant = 'sensor' }: { data: Metric[]; variant?: MetricVariant }) {
+  const [gridWidth, setGridWidth] = useState(0);
+  const metricWidth = gridWidth > 0 ? (gridWidth - 16) / 3 : 100;
+
+  return (
+    <View
+      testID="capture-three-column-grid"
+      style={styles.metricGrid}
+      onLayout={({ nativeEvent }) => setGridWidth(nativeEvent.layout.width)}
+    >
+      {data.map((item) => (
+        <MetricCard key={item.label} item={item} variant={variant} width={metricWidth} />
+      ))}
+    </View>
+  );
 }
 
-function SectionTitle({ children }: React.PropsWithChildren) {
-  return <Text style={styles.sectionTitle}>{children}</Text>;
+function SectionTitle({ action, children }: React.PropsWithChildren<{ action?: React.ReactNode }>) {
+  return (
+    <View style={styles.sectionTitleRow}>
+      <View style={styles.sectionTitleAccent} />
+      <Text style={styles.sectionTitle}>{children}</Text>
+      {action}
+    </View>
+  );
+}
+
+function SensorGroupDivider() {
+  return <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.sensorGroupDivider} />;
+}
+
+function SensorGroupTitle({ children }: React.PropsWithChildren) {
+  return (
+    <View style={styles.sensorGroupTitleRow}>
+      <SensorGroupDivider />
+      <Text style={styles.sensorGroupTitle}>{children}</Text>
+      <SensorGroupDivider />
+    </View>
+  );
 }
 
 function DeviceInfoCard() {
@@ -197,16 +306,98 @@ function DeviceInfoCard() {
 }
 
 function RealtimeContent() {
+  const [expanded, setExpanded] = useState(false);
+
   return (
     <View style={styles.dataPanel}>
-      <SectionTitle>实时状态数据</SectionTitle>
-      <MetricGrid data={realtime} />
-      <SectionTitle>轿门A传感器数据</SectionTitle>
-      <MetricGrid data={doorA} />
-      <SectionTitle>轿门B传感器数据</SectionTitle>
-      <MetricGrid data={doorB} />
-      <SectionTitle>机房传感器数据</SectionTitle>
-      <MetricGrid data={machineRoom} />
+      <View style={styles.dataContent}>
+        <View style={styles.dataCategory}>
+          <SectionTitle>实时数据</SectionTitle>
+          <MetricGrid data={realtime} variant="realtime" />
+        </View>
+        {expanded && (
+          <View style={styles.sensorGroups}>
+            <View style={styles.sensorGroup}>
+              <SensorGroupTitle>轿门A传感器</SensorGroupTitle>
+              <MetricGrid data={doorA} variant="sensor" />
+            </View>
+            <View style={styles.sensorGroup}>
+              <SensorGroupTitle>轿门B传感器</SensorGroupTitle>
+              <MetricGrid data={doorB} variant="sensor" />
+            </View>
+            <View style={styles.sensorGroup}>
+              <SensorGroupTitle>机房传感器</SensorGroupTitle>
+              <MetricGrid data={machineRoom} variant="sensor" />
+            </View>
+          </View>
+        )}
+      </View>
+      <Pressable
+        accessibilityLabel={expanded ? '收起更多实时数据' : '展开更多实时数据'}
+        accessibilityRole="button"
+        accessibilityState={{ expanded }}
+        onPress={() => setExpanded((value) => !value)}
+        style={({ pressed }) => [styles.expandMoreButton, pressed && styles.pressed]}
+      >
+        <Text style={styles.expandMoreText}>{expanded ? '收起' : '展开更多'}</Text>
+        <View style={[styles.expandChevronFrame, expanded && styles.expandChevronOpen]}>
+          <ChevronGray width={10} height={6} />
+        </View>
+      </Pressable>
+    </View>
+  );
+}
+
+function EventSummaryContent({ onOpenDeviceDynamics }: { onOpenDeviceDynamics: () => void }) {
+  return (
+    <View style={styles.dataPanel}>
+      <View style={styles.eventSummaryHeading}>
+        <SectionTitle
+          action={(
+            <Pressable
+              accessibilityLabel="查看设备动态"
+              accessibilityRole="link"
+              hitSlop={8}
+              onPress={onOpenDeviceDynamics}
+              style={({ pressed }) => [styles.deviceDynamicsEntry, pressed && styles.pressed]}
+            >
+              <Text style={styles.deviceDynamicsEntryText}>查看设备动态</Text>
+            </Pressable>
+          )}
+        >
+          AI事件汇总
+        </SectionTitle>
+        <Text style={styles.eventSummaryDescription}>该数据统计截止至当前页面打开时。</Text>
+      </View>
+      <View accessibilityLabel="AI事件汇总表格" style={styles.eventSummaryTable}>
+        <View style={styles.eventSummaryRow}>
+          <View style={[styles.eventSummaryCell, styles.eventSummaryLabelColumn, styles.eventSummaryHeaderCell, styles.eventSummaryLabelCell]}>
+            <Text style={[styles.eventSummaryHeaderText, styles.eventSummaryLabelText]}>数据项</Text>
+          </View>
+          <View style={[styles.eventSummaryCell, styles.eventSummaryValueColumn, styles.eventSummaryHeaderCell]}>
+            <Text style={styles.eventSummaryHeaderText}>工单前 30min{`\n`}16:16–16:46</Text>
+          </View>
+          <View style={[styles.eventSummaryCell, styles.eventSummaryValueColumn, styles.eventSummaryHeaderCell]}>
+            <Text style={styles.eventSummaryHeaderText}>工单后至打开{`\n`}16:46–17:18</Text>
+          </View>
+        </View>
+        {eventSummaryRows.map((row, index) => (
+          <View
+            key={row.label}
+            style={[styles.eventSummaryRow, styles.eventSummaryBodyRow, index % 2 === 1 && styles.eventSummaryAlternateRow]}
+          >
+            <View style={[styles.eventSummaryCell, styles.eventSummaryLabelColumn, styles.eventSummaryBodyCell, styles.eventSummaryLabelCell]}>
+              <Text style={[styles.eventSummaryBodyText, styles.eventSummaryLabelText]}>{row.label}</Text>
+            </View>
+            <View style={[styles.eventSummaryCell, styles.eventSummaryValueColumn, styles.eventSummaryBodyCell]}>
+              <Text style={[styles.eventSummaryBodyText, styles.eventSummaryValueText]}>{row.beforeWorkOrder}</Text>
+            </View>
+            <View style={[styles.eventSummaryCell, styles.eventSummaryValueColumn, styles.eventSummaryBodyCell]}>
+              <Text style={[styles.eventSummaryBodyText, styles.eventSummaryValueText]}>{row.afterWorkOrder}</Text>
+            </View>
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
@@ -627,8 +818,31 @@ function OperationRecordsView({ records, onBack }: { records: OperationRecord[];
   );
 }
 
+function DeviceDetailsFallback({ onOpen }: { onOpen: () => void }) {
+  return (
+    <Pressable
+      accessibilityHint="当前页面信息无法解决问题时，继续查看完整设备信息"
+      accessibilityLabel="仍需进一步排查，查看设备详情"
+      accessibilityRole="link"
+      onPress={onOpen}
+      style={({ pressed }) => [styles.deviceDetailsFallback, pressed && styles.pressed]}
+    >
+      <Text style={styles.deviceDetailsFallbackPrompt}>仍需进一步排查？</Text>
+      <View style={styles.deviceDetailsFallbackAction}>
+        <Text style={styles.deviceDetailsFallbackLink}>查看设备详情</Text>
+        <View style={styles.operationChevron}>
+          <OperationChevron
+            color={colorThemes.light.text.link}
+            width={6}
+            height={10}
+          />
+        </View>
+      </View>
+    </Pressable>
+  );
+}
+
 function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: () => void }) {
-  const [activeTab, setActiveTab] = useState<Tab>('实时状态');
   const [liftDialog, setLiftDialog] = useState<LiftDialog>('hidden');
   const [liftScenario, setLiftScenario] = useState<LiftScenario>('success');
   const [progress, setProgress] = useState(0);
@@ -642,7 +856,8 @@ function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: ()
   const [liftLimitReached, setLiftLimitReached] = useState(false);
   const [restartLimitReached, setRestartLimitReached] = useState(false);
   const [records, setRecords] = useState<OperationRecord[]>([]);
-  const [devicePage, setDevicePage] = useState<'detail' | 'records'>('detail');
+  const [devicePage, setDevicePage] = useState<'detail' | 'records' | 'projectDetails' | 'fullDetails'>('detail');
+  const [deviceDynamicsVisible, setDeviceDynamicsVisible] = useState(false);
   const progressTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const resultTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const restartTimer = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -827,21 +1042,54 @@ function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: ()
     }, ...current]);
     setRestartDialog('hidden');
   };
-  const tabContent = useMemo(() => {
-    if (activeTab === '日在线率趋势') return <TrendContent />;
-    if (activeTab === '数据统计') return <SummaryContent />;
-    if (activeTab === '设备事件') return <EventsContent />;
-    return <RealtimeContent />;
-  }, [activeTab]);
 
   if (devicePage === 'records') return <OperationRecordsView records={records} onBack={() => setDevicePage('detail')} />;
+
+  const actionDialogs = (
+    <>
+      <LiftFlowDialog
+        mode={liftDialog}
+        progress={progress}
+        currentFloor={currentFloor}
+        attemptNumber={liftAttemptNumber}
+        onCancel={() => setLiftDialog('hidden')}
+        onSelectScenario={selectScenario}
+        onConfirm={startRemoteLift}
+        onAcknowledge={acknowledgeResult}
+      />
+      {deviceType === 'KCECPUC' && (
+        <RestartFlowDialog
+          mode={restartDialog}
+          progress={restartProgress}
+          attemptNumber={restartAttemptNumber}
+          onCancel={() => setRestartDialog('hidden')}
+          onSelectScenario={selectRestartScenario}
+          onConfirm={startRemoteRestart}
+          onAcknowledge={acknowledgeRestart}
+        />
+      )}
+    </>
+  );
+
+  if (devicePage === 'projectDetails') {
+    return (
+      <ProjectDetailsView
+        onBack={() => setDevicePage('detail')}
+        onOpenDeviceDetails={() => setDevicePage('fullDetails')}
+      />
+    );
+  }
+
+  if (devicePage === 'fullDetails') {
+    return <DeviceDetailsView onBack={() => setDevicePage('projectDetails')} />;
+  }
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <View style={styles.navbar}>
         <Pressable accessibilityLabel="返回工单明细" hitSlop={12} style={styles.backButton} onPress={onBack}><Back width={10} height={17} /></Pressable>
-        <Text style={styles.navTitle}>设备详情</Text>
+        <Text style={styles.navTitle}>云管家数据</Text>
       </View>
 
       <View style={styles.debugCard}>
@@ -853,23 +1101,23 @@ function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: ()
           {records.length > 0 && (
             <Pressable accessibilityRole="button" onPress={() => setDevicePage('records')} style={({ pressed }) => [styles.operationEntry, pressed && styles.pressed]}>
               <Text style={styles.operationEntryText}>操作记录</Text>
-              <OperationChevron width={6} height={10} style={styles.operationChevron} />
+              <View style={styles.operationChevron}>
+                <OperationChevron color={colorThemes.light.text.link} width={6} height={10} />
+              </View>
             </Pressable>
           )}
         </View>
         <Text style={styles.debugDescription}>门锁回路瞬时断开，轿厢停于非平层</Text>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.topSection}><DeviceInfoCard /></View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabs}>
-          {tabs.map((tab) => (
-            <Pressable key={tab} onPress={() => setActiveTab(tab)} style={[styles.tab, activeTab === tab && styles.activeTab]}>
-              <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>{tab}</Text>
-            </Pressable>
-          ))}
-        </ScrollView>
-        <View style={styles.panelWrap}>{tabContent}</View>
+      <ScrollView
+        contentContainerStyle={styles.dataScrollContent}
+        showsVerticalScrollIndicator={false}
+        style={styles.dataScroll}
+      >
+        <RealtimeContent />
+        <EventSummaryContent onOpenDeviceDynamics={() => setDeviceDynamicsVisible(true)} />
+        <DeviceDetailsFallback onOpen={() => setDevicePage('fullDetails')} />
       </ScrollView>
 
       <SafeAreaView edges={['bottom']} style={styles.bottomBar}>
@@ -895,30 +1143,16 @@ function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: ()
         </View>
       </SafeAreaView>
 
-      <LiftFlowDialog
-        mode={liftDialog}
-        progress={progress}
-        currentFloor={currentFloor}
-        attemptNumber={liftAttemptNumber}
-        onCancel={() => setLiftDialog('hidden')}
-        onSelectScenario={selectScenario}
-        onConfirm={startRemoteLift}
-        onAcknowledge={acknowledgeResult}
+      <DeviceDynamicsDialog
+        onClose={() => setDeviceDynamicsVisible(false)}
+        visible={deviceDynamicsVisible}
       />
-      {deviceType === 'KCECPUC' && (
-        <RestartFlowDialog
-          mode={restartDialog}
-          progress={restartProgress}
-          attemptNumber={restartAttemptNumber}
-          onCancel={() => setRestartDialog('hidden')}
-          onSelectScenario={selectRestartScenario}
-          onConfirm={startRemoteRestart}
-          onAcknowledge={acknowledgeRestart}
-        />
-      )}
+      {actionDialogs}
     </SafeAreaView>
   );
 }
+
+const SCREENSHOT_TARGET_ID = 'app-screenshot-target';
 
 export default function App() {
   const [screen, setScreen] = useState<'workOrder' | 'device'>('workOrder');
@@ -929,9 +1163,15 @@ export default function App() {
   };
   return (
     <SafeAreaProvider>
-      {screen === 'workOrder'
-        ? <WorkOrderView onOpenDevice={openDevice} />
-        : <DeviceView deviceType={deviceType} onBack={() => setScreen('workOrder')} />}
+      <View id={SCREENSHOT_TARGET_ID} style={styles.safeArea}>
+        {screen === 'workOrder'
+          ? <WorkOrderView onOpenDevice={openDevice} />
+          : <DeviceView deviceType={deviceType} onBack={() => setScreen('workOrder')} />}
+      </View>
+      <WebScreenshotTool
+        fileName={`remote-elevator-${screen}-full@3x.png`}
+        targetId={SCREENSHOT_TARGET_ID}
+      />
     </SafeAreaProvider>
   );
 }
@@ -951,6 +1191,12 @@ const styles = StyleSheet.create({
   operationEntry: { height: 24, flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 3 },
   operationEntryText: { color: BLUE, fontSize: 14, lineHeight: 22 },
   operationChevron: { transform: [{ rotate: '180deg' }] },
+  dataScroll: { flex: 1, backgroundColor: colorThemes.light.background.page },
+  dataScrollContent: { flexGrow: 1, gap: 12, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 102, backgroundColor: colorThemes.light.background.page },
+  deviceDetailsFallback: { minHeight: 56, paddingHorizontal: 12, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderRadius: 12, backgroundColor: colorThemes.light.background.container },
+  deviceDetailsFallbackPrompt: { minWidth: 0, flexShrink: 1, color: colorThemes.light.text.secondary, ...typographyTokens.body14Regular },
+  deviceDetailsFallbackAction: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  deviceDetailsFallbackLink: { color: colorThemes.light.text.link, ...typographyTokens.body14Regular },
   scrollContent: { paddingBottom: 102, backgroundColor: BG },
   topSection: { paddingHorizontal: 16, paddingTop: 16 },
   deviceTitleRow: { height: 24, flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
@@ -995,16 +1241,48 @@ const styles = StyleSheet.create({
   tabText: { color: '#141414', fontSize: 16, lineHeight: 24 },
   activeTabText: { color: BLUE, fontWeight: '600' },
   panelWrap: { paddingHorizontal: 16 },
-  dataPanel: { padding: 16, borderRadius: 12, gap: 16, backgroundColor: '#FFFFFF' },
-  sectionTitle: { color: '#181818', fontSize: 16, lineHeight: 24, fontWeight: '600' },
-  metricGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  metricCard: { width: '21.8%', minWidth: 62, height: 80, paddingHorizontal: 4, paddingVertical: 7, alignItems: 'center', justifyContent: 'flex-start', borderRadius: 4, backgroundColor: LIGHT_BLUE },
-  metricLabel: { color: MUTED, fontSize: 10, lineHeight: 16 },
-  metricValueRow: { minHeight: 30, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 7 },
-  metricValue: { color: BLUE, fontSize: 18, lineHeight: 26, fontWeight: '600' },
-  metricValueSmall: { fontSize: 13, lineHeight: 20 },
-  metricUnit: { color: '#262E33', fontSize: 9, lineHeight: 15, fontWeight: '600' },
-  floorCode: { marginTop: -4, color: '#262E33', fontSize: 12, lineHeight: 18, fontWeight: '600' },
+  dataPanel: { paddingHorizontal: 12, paddingVertical: 16, borderRadius: 12, gap: 12, backgroundColor: colorThemes.light.background.container },
+  dataContent: { gap: 20 },
+  dataCategory: { gap: 8 },
+  sensorGroups: { gap: 24 },
+  sensorGroup: { gap: 8 },
+  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  sectionTitleAccent: { width: 4, height: 14, borderRadius: 1, backgroundColor: colorThemes.light.brand.hover },
+  sectionTitle: { minWidth: 0, flex: 1, color: colorThemes.light.text.primary, ...typographyTokens.title16Semibold },
+  deviceDynamicsEntry: { minHeight: 24, justifyContent: 'center', borderRadius: 3 },
+  deviceDynamicsEntryText: { color: colorThemes.light.text.link, ...typographyTokens.body14Regular },
+  eventSummaryHeading: { gap: 4 },
+  eventSummaryDescription: { color: colorThemes.light.text.placeholder, ...typographyTokens.footer12Regular },
+  sensorGroupTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  sensorGroupDivider: { minWidth: 0, flex: 1, height: 0, borderTopWidth: 1, borderTopColor: colorThemes.light.border.componentStroke, borderStyle: 'dashed' },
+  sensorGroupTitle: { color: colorThemes.light.text.primary, ...typographyTokens.footer12Regular },
+  metricGrid: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 8, rowGap: 8 },
+  metricCard: { height: 106, padding: 4, alignItems: 'center', justifyContent: 'space-between', borderRadius: 6, backgroundColor: colorThemes.light.background.secondaryContainer },
+  metricLabel: { width: '100%', color: colorThemes.light.text.secondary, textAlign: 'center', ...typographyTokens.footer12Regular },
+  metricIconSurface: { width: 40, height: 40, padding: 8, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
+  realtimeMetricIconSurface: { backgroundColor: colorThemes.light.dataTile.realtimeIconBackground },
+  sensorMetricIconSurface: { backgroundColor: colorThemes.light.dataTile.sensorIconBackground },
+  metricValueRow: { minHeight: 22, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', gap: 2 },
+  metricValue: { color: colorThemes.light.text.primary, ...typographyTokens.body14Semibold },
+  metricValueError: { color: colorThemes.light.error.default },
+  expandMoreButton: { minHeight: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  expandMoreText: { color: colorThemes.light.text.secondary, ...typographyTokens.body14Regular },
+  expandChevronFrame: { width: 10, height: 6, alignItems: 'center', justifyContent: 'center' },
+  expandChevronOpen: { transform: [{ rotate: '180deg' }] },
+  eventSummaryTable: { overflow: 'hidden', borderWidth: 1, borderColor: colorThemes.light.table.border, borderRadius: 6, backgroundColor: colorThemes.light.background.container },
+  eventSummaryRow: { flexDirection: 'row' },
+  eventSummaryBodyRow: { height: 44, backgroundColor: colorThemes.light.background.container },
+  eventSummaryAlternateRow: { backgroundColor: colorThemes.light.table.alternateRowBackground },
+  eventSummaryCell: { minWidth: 0 },
+  eventSummaryLabelColumn: { width: 84 },
+  eventSummaryLabelCell: { paddingLeft: 10, paddingRight: 4, alignItems: 'stretch' },
+  eventSummaryValueColumn: { flex: 1 },
+  eventSummaryHeaderCell: { minHeight: 56, paddingHorizontal: 10, paddingVertical: 6, alignItems: 'center', justifyContent: 'center', backgroundColor: colorThemes.light.table.headerBackground },
+  eventSummaryHeaderText: { width: '100%', color: colorThemes.light.text.primary, textAlign: 'center', ...typographyTokens.body14Medium },
+  eventSummaryBodyCell: { height: 44, paddingHorizontal: 4, paddingVertical: 4, alignItems: 'flex-start', justifyContent: 'center' },
+  eventSummaryBodyText: { width: '100%', color: colorThemes.light.text.secondary, ...typographyTokens.body14Regular },
+  eventSummaryLabelText: { textAlign: 'left' },
+  eventSummaryValueText: { textAlign: 'center' },
   chart: { height: 176, paddingTop: 12, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
   barColumn: { flex: 1, alignItems: 'center', justifyContent: 'flex-end' },
   bar: { width: 18, minHeight: 12, borderRadius: 5, backgroundColor: '#7296F9' },
@@ -1015,7 +1293,7 @@ const styles = StyleSheet.create({
   eventTitle: { color: '#262E33', fontSize: 14, lineHeight: 20 },
   eventTime: { color: '#ABADB2', fontSize: 11, lineHeight: 18 },
   bottomBar: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: '#FFFFFF', shadowColor: '#000000', shadowOffset: { width: 0, height: -1 }, shadowOpacity: 0.06, shadowRadius: 3, elevation: 8 },
-  bottomActions: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 8, flexDirection: 'row', gap: 16 },
+  bottomActions: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12, flexDirection: 'row', gap: 16 },
   actionButton: { flex: 1, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 128, backgroundColor: LIGHT_BLUE },
   actionText: { color: BLUE, fontSize: 16, lineHeight: 24, fontWeight: '600' },
   actionButtonDisabled: { backgroundColor: '#F3F6FE' },

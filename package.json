@@ -7,7 +7,7 @@
     "start": "expo start",
     "web": "expo start --web",
     "build:web": "expo export --platform web --output-dir dist && node scripts/prepare-sites-build.mjs",
-    "build:pages": "expo export --platform web --output-dir dist && GITHUB_PAGES_BASE_PATH=remote-elevator-demo node scripts/prepare-github-pages.mjs",
+    "build:pages": "expo export --platform web --output-dir dist && GITHUB_PAGES_BASE_PATH=My-Device-View node scripts/prepare-github-pages.mjs",
     "ios": "expo start --ios",
     "android": "expo start --android",
     "typecheck": "tsc --noEmit"
@@ -16,6 +16,7 @@
     "@expo/metro-runtime": "~6.1.2",
     "expo": "~54.0.0",
     "expo-status-bar": "~3.0.8",
+    "html2canvas": "1.4.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.5",
@@ -25,6 +26,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.1.10",
+    "@types/react-dom": "19.1.11",
     "babel-preset-expo": "~54.0.0",
     "react-native-svg-transformer": "^1.5.1",
     "typescript": "~5.9.2"
