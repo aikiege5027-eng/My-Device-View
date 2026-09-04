@@ -1,0 +1,9 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="report2">
+<g id="Union">
+<path d="M6.875 6.25H13.125V7.5H6.875V6.25Z" fill="#141414"/>
+<path d="M11.25 10H6.875V11.25H11.25V10Z" fill="#141414"/>
+<path d="M5 2.5C4.30964 2.5 3.75 3.05964 3.75 3.75V16.25C3.75 16.9404 4.30964 17.5 5 17.5H15C15.6904 17.5 16.25 16.9404 16.25 16.25V3.75C16.25 3.05964 15.6904 2.5 15 2.5H5ZM15 3.75V16.25H5V3.75H15Z" fill="#141414"/>
+</g>
+</g>
+</svg>

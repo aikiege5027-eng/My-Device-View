@@ -13,7 +13,7 @@ import Svg, { Circle } from 'react-native-svg';
 
 import ProjectBack from '../assets/project-back.svg';
 import HealthBadgeIcon from '../assets/project-health-badge.svg';
-import CaretDown from '../assets/project-caret-down.svg';
+import CaretDown from '../assets/caret-down-small.svg';
 import ChevronRight from '../assets/project-chevron-right.svg';
 import ElevatorDisabled from '../assets/project-elevator-disabled.svg';
 import ElevatorFilled from '../assets/project-elevator-filled.svg';
@@ -31,7 +31,9 @@ import UnratedStatus from '../assets/project-status-unrated.svg';
 import { colorThemes, typographyTokens } from '../designTokens';
 
 type ProjectDetailsViewProps = {
+  onBack: () => void;
   onOpenDeviceDetails: () => void;
+  onOpenExportReportSettings: () => void;
   titleRef?: React.Ref<Text>;
 };
 
@@ -150,7 +152,7 @@ function HealthChart() {
   );
 }
 
-function HealthSection() {
+function HealthSection({ onOpenExportReportSettings }: { onOpenExportReportSettings: () => void }) {
   return (
     <View style={styles.section}>
       <View style={styles.healthHeading}>
@@ -158,10 +160,16 @@ function HealthSection() {
           <Text accessibilityRole="header" style={styles.sectionTitle}>项目健康综合评分</Text>
           <Info accessibilityElementsHidden importantForAccessibility="no-hide-descendants" width={20} height={20} />
         </View>
-        <View style={styles.headingAction}>
+        <Pressable
+          accessibilityHint="打开导出报告设置"
+          accessibilityLabel="导出项目健康报告"
+          accessibilityRole="button"
+          onPress={onOpenExportReportSettings}
+          style={({ pressed }) => [styles.headingAction, pressed && styles.pressed]}
+        >
           <Text style={styles.headingActionText}>导出项目健康报告</Text>
           <ChevronRight accessibilityElementsHidden importantForAccessibility="no-hide-descendants" width={16} height={16} />
-        </View>
+        </Pressable>
       </View>
       <Text style={styles.lastChecked}>最近检查时间：2024年10月23日</Text>
       <View style={styles.healthCard}>
@@ -234,7 +242,7 @@ function DeviceList({ onOpenDeviceDetails }: { onOpenDeviceDetails: () => void }
         {['电梯类型', '是否云设备', '设备健康状态'].map((label) => (
           <View key={label} style={styles.filterItem}>
             <Text style={styles.filterText}>{label}</Text>
-            <CaretDown accessibilityElementsHidden importantForAccessibility="no-hide-descendants" width={16} height={16} />
+            <CaretDown accessibilityElementsHidden color={colors.text.primary} importantForAccessibility="no-hide-descendants" width={16} height={16} />
           </View>
         ))}
       </View>
@@ -263,24 +271,36 @@ function DeviceList({ onOpenDeviceDetails }: { onOpenDeviceDetails: () => void }
   );
 }
 
-export function ProjectDetailsView({ onOpenDeviceDetails, titleRef }: ProjectDetailsViewProps) {
+export function ProjectDetailsView({
+  onBack,
+  onOpenDeviceDetails,
+  onOpenExportReportSettings,
+  titleRef,
+}: ProjectDetailsViewProps) {
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <StatusBar backgroundColor={colors.background.container} barStyle="dark-content" />
       <View style={styles.navbar}>
-        <View
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-          style={styles.backButton}
+        <Pressable
+          accessibilityLabel="返回设备视界首页"
+          accessibilityRole="button"
+          hitSlop={12}
+          onPress={onBack}
+          style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
         >
-          <ProjectBack width={24} height={24} />
-        </View>
+          <ProjectBack
+            accessibilityElementsHidden
+            height={24}
+            importantForAccessibility="no-hide-descendants"
+            width={24}
+          />
+        </Pressable>
         <Text accessibilityRole="header" ref={titleRef} style={styles.navTitle}>项目详情</Text>
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} style={styles.scroll}>
         <ProjectOverview />
         <ReportSection />
-        <HealthSection />
+        <HealthSection onOpenExportReportSettings={onOpenExportReportSettings} />
         <DeviceList onOpenDeviceDetails={onOpenDeviceDetails} />
       </ScrollView>
     </SafeAreaView>
@@ -293,6 +313,7 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background.container },
   navbar: { height: 48, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background.container },
   backButton: { position: 'absolute', left: 12, width: 32, height: 40, alignItems: 'flex-start', justifyContent: 'center', zIndex: 1 },
+  backButtonPressed: { backgroundColor: colors.background.component },
   navTitle: { color: colors.text.primary, ...typographyTokens.title18Semibold },
   scroll: { flex: 1, backgroundColor: colors.background.page },
   scrollContent: { gap: 16, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 30 },

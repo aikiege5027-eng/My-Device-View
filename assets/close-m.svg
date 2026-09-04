@@ -1,5 +1,5 @@
 <svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g id="close-M">
-<path id="Union" fill-rule="evenodd" clip-rule="evenodd" d="M11 11.8933L15.6067 16.5L16.5 15.6067L11.8933 11L16.5 6.39331L15.6067 5.5L11 10.1067L6.39331 5.5L5.5 6.39331L10.1067 11L5.5 15.6067L6.39331 16.5L11 11.8933Z" fill="#8F9195"/>
+<path id="Union" fill-rule="evenodd" clip-rule="evenodd" d="M11 11.8933L15.6067 16.5L16.5 15.6067L11.8933 11L16.5 6.39331L15.6067 5.5L11 10.1067L6.39331 5.5L5.5 6.39331L10.1067 11L5.5 15.6067L6.39331 16.5L11 11.8933Z" fill="currentColor"/>
 </g>
 </svg>

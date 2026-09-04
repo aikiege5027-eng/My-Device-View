@@ -41,12 +41,16 @@ import Location from './assets/location.svg';
 import OperationChevron from './assets/operation-chevron.svg';
 import ReportWave from './assets/report-wave.svg';
 import NoticeWarning from './assets/notice-warning.svg';
+import { DataPanelTitle as SectionTitle } from './components/DataPanelTitle';
 import { DeviceBackDemoDialog } from './components/DeviceBackDemoDialog';
 import { DeviceDetailsView } from './components/DeviceDetailsView';
 import { DeviceDynamicsDialog } from './components/DeviceDynamicsDialog';
+import { ExportReportSettingsView } from './components/ExportReportSettingsView';
+import { MyDeviceHomeView } from './components/MyDeviceHomeView';
+import { PageTemplate, type PageFooterActions } from './components/PageTemplate';
 import { ProjectDetailsView } from './components/ProjectDetailsView';
 import { WebScreenshotTool } from './components/WebScreenshotTool';
-import { colorThemes, typographyTokens } from './designTokens';
+import { colorThemes, componentTokens, typographyTokens } from './designTokens';
 
 const BLUE = '#1450F5';
 const BG = '#F2F4F7';
@@ -207,16 +211,6 @@ function MetricGrid({ data, variant = 'sensor' }: { data: Metric[]; variant?: Me
       {data.map((item) => (
         <MetricCard key={item.label} item={item} variant={variant} width={metricWidth} />
       ))}
-    </View>
-  );
-}
-
-function SectionTitle({ action, children }: React.PropsWithChildren<{ action?: React.ReactNode }>) {
-  return (
-    <View style={styles.sectionTitleRow}>
-      <View style={styles.sectionTitleAccent} />
-      <Text style={styles.sectionTitle}>{children}</Text>
-      {action}
     </View>
   );
 }
@@ -845,7 +839,15 @@ function DeviceDetailsFallback({ onOpen }: { onOpen: () => void }) {
   );
 }
 
-function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: () => void }) {
+function DeviceView({
+  deviceType,
+  onBack,
+  onBackToHome,
+}: {
+  deviceType: DeviceType;
+  onBack: () => void;
+  onBackToHome: () => void;
+}) {
   const [liftDialog, setLiftDialog] = useState<LiftDialog>('hidden');
   const [liftScenario, setLiftScenario] = useState<LiftScenario>('success');
   const [progress, setProgress] = useState(0);
@@ -859,13 +861,14 @@ function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: ()
   const [liftLimitReached, setLiftLimitReached] = useState(false);
   const [restartLimitReached, setRestartLimitReached] = useState(false);
   const [records, setRecords] = useState<OperationRecord[]>([]);
-  const [devicePage, setDevicePage] = useState<'detail' | 'records' | 'projectDetails' | 'fullDetails'>('detail');
+  const [devicePage, setDevicePage] = useState<'detail' | 'records' | 'projectDetails' | 'exportReportSettings' | 'fullDetails'>('detail');
   const [deviceBackDemoVisible, setDeviceBackDemoVisible] = useState(false);
   const [deviceDynamicsVisible, setDeviceDynamicsVisible] = useState(false);
   const cloudDataTitleRef = useRef<Text>(null);
   const deviceDetailsBackRef = useRef<View>(null);
-  const pendingPageFocus = useRef<'detail' | 'projectDetails' | null>(null);
+  const pendingPageFocus = useRef<'detail' | 'projectDetails' | 'exportReportSettings' | null>(null);
   const projectDetailsTitleRef = useRef<Text>(null);
+  const exportReportSettingsTitleRef = useRef<Text>(null);
   const progressTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const resultTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const restartTimer = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -888,7 +891,11 @@ function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: ()
 
     pendingPageFocus.current = null;
     const focusTimer = setTimeout(() => {
-      const targetRef = focusTarget === 'detail' ? cloudDataTitleRef : projectDetailsTitleRef;
+      const targetRef = focusTarget === 'detail'
+        ? cloudDataTitleRef
+        : focusTarget === 'projectDetails'
+          ? projectDetailsTitleRef
+          : exportReportSettingsTitleRef;
       const reactTag = targetRef.current ? findNodeHandle(targetRef.current) : null;
       if (reactTag) AccessibilityInfo.setAccessibilityFocus(reactTag);
     }, 100);
@@ -1096,8 +1103,26 @@ function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: ()
   if (devicePage === 'projectDetails') {
     return (
       <ProjectDetailsView
+        onBack={onBackToHome}
         onOpenDeviceDetails={() => setDevicePage('fullDetails')}
+        onOpenExportReportSettings={() => {
+          pendingPageFocus.current = 'exportReportSettings';
+          setDevicePage('exportReportSettings');
+        }}
         titleRef={projectDetailsTitleRef}
+      />
+    );
+  }
+
+  if (devicePage === 'exportReportSettings') {
+    return (
+      <ExportReportSettingsView
+        onBack={() => {
+          pendingPageFocus.current = 'projectDetails';
+          setDevicePage('projectDetails');
+        }}
+        onExportReport={() => Alert.alert('导出报告', '报告导出功能为 Demo 演示。')}
+        titleRef={exportReportSettingsTitleRef}
       />
     );
   }
@@ -1130,78 +1155,95 @@ function DeviceView({ deviceType, onBack }: { deviceType: DeviceType; onBack: ()
     );
   }
 
+  const footerActions: PageFooterActions = deviceType === 'KCECPUC'
+    ? {
+        actions: [
+          {
+            accessibilityHint: restartLimitReached
+              ? '已达到每小时远程重启次数上限'
+              : restartEnabled
+                ? '选择远程重启演示场景'
+                : '完成一次远程呼梯后可用',
+            disabled: !restartEnabled || restartLimitReached,
+            id: 'remote-restart',
+            label: '远程重启',
+            onPress: openRestartScenario,
+          },
+          {
+            accessibilityHint: liftLimitReached
+              ? '已达到每小时远程呼梯次数上限'
+              : '选择远程呼梯演示场景',
+            disabled: liftLimitReached,
+            id: 'remote-lift',
+            label: '远程呼梯',
+            onPress: openLiftScenario,
+          },
+        ],
+        variant: 'dualSecondary',
+      }
+    : {
+        secondary: {
+          accessibilityHint: '选择远程呼梯演示场景',
+          disabled: liftLimitReached,
+          id: 'remote-lift',
+          label: '远程呼梯',
+          onPress: openLiftScenario,
+        },
+        variant: 'singleSecondary',
+      };
+
   return (
-    <SafeAreaView edges={['top']} style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      <View style={styles.navbar}>
-        <Pressable accessibilityLabel="返回工单明细" hitSlop={12} style={styles.backButton} onPress={onBack}><Back width={10} height={17} /></Pressable>
-        <Text accessibilityRole="header" ref={cloudDataTitleRef} style={styles.navTitle}>云管家数据</Text>
-      </View>
-
-      <View style={styles.debugCard}>
-        <View style={styles.debugTitleRow}>
-          <View style={styles.debugIdentity}>
-            <Text style={styles.debugSn}>SN000000</Text>
-            <View style={styles.controllerTag}><Text style={styles.controllerTagText}>{deviceType}</Text></View>
-          </View>
-          {records.length > 0 && (
-            <Pressable accessibilityRole="button" onPress={() => setDevicePage('records')} style={({ pressed }) => [styles.operationEntry, pressed && styles.pressed]}>
-              <Text style={styles.operationEntryText}>操作记录</Text>
-              <View style={styles.operationChevron}>
-                <OperationChevron color={colorThemes.light.text.link} width={6} height={10} />
-              </View>
-            </Pressable>
-          )}
-        </View>
-        <Text style={styles.debugDescription}>门锁回路瞬时断开，轿厢停于非平层</Text>
-      </View>
-
-      <ScrollView
-        contentContainerStyle={styles.dataScrollContent}
-        showsVerticalScrollIndicator={false}
-        style={styles.dataScroll}
+    <>
+      <PageTemplate
+        backAccessibilityHint="返回工单明细"
+        backAccessibilityLabel="返回工单明细"
+        footer={footerActions}
+        onBack={onBack}
+        title="云管家数据"
+        titleRef={cloudDataTitleRef}
       >
-        <RealtimeContent />
-        <EventSummaryContent onOpenDeviceDynamics={() => setDeviceDynamicsVisible(true)} />
-        <DeviceDetailsFallback onOpen={() => setDevicePage('fullDetails')} />
-      </ScrollView>
-
-      <SafeAreaView edges={['bottom']} style={styles.bottomBar}>
-        <View style={styles.bottomActions}>
-          {deviceType === 'KCECPUC' && (
-            <Pressable
-              accessibilityLabel="远程重启"
-              disabled={!restartEnabled || restartLimitReached}
-              onPress={openRestartScenario}
-              style={({ pressed }) => [styles.actionButton, (!restartEnabled || restartLimitReached) && styles.actionButtonDisabled, pressed && styles.pressed]}
-            >
-              <Text style={[styles.actionText, (!restartEnabled || restartLimitReached) && styles.actionTextDisabled]}>远程重启</Text>
-            </Pressable>
-          )}
-          <Pressable
-            accessibilityLabel="远程呼梯"
-            disabled={liftLimitReached}
-            onPress={openLiftScenario}
-            style={({ pressed }) => [styles.actionButton, liftLimitReached && styles.actionButtonDisabled, pressed && styles.pressed]}
-          >
-            <Text style={[styles.actionText, liftLimitReached && styles.actionTextDisabled]}>远程呼梯</Text>
-          </Pressable>
+        <View style={styles.debugCard}>
+          <View style={styles.debugTitleRow}>
+            <View style={styles.debugIdentity}>
+              <Text style={styles.debugSn}>SN000000</Text>
+              <View style={styles.controllerTag}><Text style={styles.controllerTagText}>{deviceType}</Text></View>
+            </View>
+            {records.length > 0 && (
+              <Pressable accessibilityRole="button" onPress={() => setDevicePage('records')} style={({ pressed }) => [styles.operationEntry, pressed && styles.pressed]}>
+                <Text style={styles.operationEntryText}>操作记录</Text>
+                <View style={styles.operationChevron}>
+                  <OperationChevron color={colorThemes.light.text.link} width={6} height={10} />
+                </View>
+              </Pressable>
+            )}
+          </View>
+          <Text style={styles.debugDescription}>门锁回路瞬时断开，轿厢停于非平层</Text>
         </View>
-      </SafeAreaView>
+
+        <ScrollView
+          contentContainerStyle={styles.dataScrollContent}
+          showsVerticalScrollIndicator={false}
+          style={styles.dataScroll}
+        >
+          <RealtimeContent />
+          <EventSummaryContent onOpenDeviceDynamics={() => setDeviceDynamicsVisible(true)} />
+          <DeviceDetailsFallback onOpen={() => setDevicePage('fullDetails')} />
+        </ScrollView>
+      </PageTemplate>
 
       <DeviceDynamicsDialog
         onClose={() => setDeviceDynamicsVisible(false)}
         visible={deviceDynamicsVisible}
       />
       {actionDialogs}
-    </SafeAreaView>
+    </>
   );
 }
 
 const SCREENSHOT_TARGET_ID = 'app-screenshot-target';
 
 export default function App() {
-  const [screen, setScreen] = useState<'workOrder' | 'device'>('workOrder');
+  const [screen, setScreen] = useState<'workOrder' | 'device' | 'home'>('home');
   const [deviceType, setDeviceType] = useState<DeviceType>('KCECPUC');
   const openDevice = (nextDeviceType: DeviceType) => {
     setDeviceType(nextDeviceType);
@@ -1212,7 +1254,15 @@ export default function App() {
       <View id={SCREENSHOT_TARGET_ID} style={styles.safeArea}>
         {screen === 'workOrder'
           ? <WorkOrderView onOpenDevice={openDevice} />
-          : <DeviceView deviceType={deviceType} onBack={() => setScreen('workOrder')} />}
+          : screen === 'home'
+            ? <MyDeviceHomeView onBack={() => setScreen('workOrder')} />
+            : (
+              <DeviceView
+                deviceType={deviceType}
+                onBack={() => setScreen('workOrder')}
+                onBackToHome={() => setScreen('home')}
+              />
+            )}
       </View>
       <WebScreenshotTool
         fileName={`remote-elevator-${screen}-full@3x.png`}
@@ -1221,6 +1271,8 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
+
+const dataPanelTokens = componentTokens.dataPanel;
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#FFFFFF' },
@@ -1238,7 +1290,7 @@ const styles = StyleSheet.create({
   operationEntryText: { color: BLUE, fontSize: 14, lineHeight: 22 },
   operationChevron: { transform: [{ rotate: '180deg' }] },
   dataScroll: { flex: 1, backgroundColor: colorThemes.light.background.page },
-  dataScrollContent: { flexGrow: 1, gap: 12, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 102, backgroundColor: colorThemes.light.background.page },
+  dataScrollContent: { flexGrow: 1, gap: dataPanelTokens.cardGap, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 16, backgroundColor: colorThemes.light.background.page },
   deviceDetailsFallback: { minHeight: 56, paddingHorizontal: 12, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderRadius: 12, backgroundColor: colorThemes.light.background.container },
   deviceDetailsFallbackPrompt: { minWidth: 0, flexShrink: 1, color: colorThemes.light.text.secondary, ...typographyTokens.body14Regular },
   deviceDetailsFallbackAction: { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -1287,14 +1339,11 @@ const styles = StyleSheet.create({
   tabText: { color: '#141414', fontSize: 16, lineHeight: 24 },
   activeTabText: { color: BLUE, fontWeight: '600' },
   panelWrap: { paddingHorizontal: 16 },
-  dataPanel: { paddingHorizontal: 12, paddingVertical: 16, borderRadius: 12, gap: 12, backgroundColor: colorThemes.light.background.container },
+  dataPanel: { paddingHorizontal: dataPanelTokens.paddingHorizontal, paddingVertical: dataPanelTokens.paddingVertical, borderRadius: dataPanelTokens.radius, gap: dataPanelTokens.contentGap, backgroundColor: colorThemes.light.background.container },
   dataContent: { gap: 20 },
   dataCategory: { gap: 8 },
   sensorGroups: { gap: 24 },
   sensorGroup: { gap: 8 },
-  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  sectionTitleAccent: { width: 4, height: 14, borderRadius: 1, backgroundColor: colorThemes.light.brand.hover },
-  sectionTitle: { minWidth: 0, flex: 1, color: colorThemes.light.text.primary, ...typographyTokens.title16Semibold },
   deviceDynamicsEntry: { minHeight: 24, justifyContent: 'center', borderRadius: 3 },
   deviceDynamicsEntryText: { color: colorThemes.light.text.link, ...typographyTokens.body14Regular },
   eventSummaryHeading: { gap: 4 },
@@ -1338,12 +1387,6 @@ const styles = StyleSheet.create({
   eventDot: { width: 8, height: 8, marginTop: 6, borderRadius: 4, backgroundColor: BLUE },
   eventTitle: { color: '#262E33', fontSize: 14, lineHeight: 20 },
   eventTime: { color: '#ABADB2', fontSize: 11, lineHeight: 18 },
-  bottomBar: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: '#FFFFFF', shadowColor: '#000000', shadowOffset: { width: 0, height: -1 }, shadowOpacity: 0.06, shadowRadius: 3, elevation: 8 },
-  bottomActions: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12, flexDirection: 'row', gap: 16 },
-  actionButton: { flex: 1, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 128, backgroundColor: LIGHT_BLUE },
-  actionText: { color: BLUE, fontSize: 16, lineHeight: 24, fontWeight: '600' },
-  actionButtonDisabled: { backgroundColor: '#F3F6FE' },
-  actionTextDisabled: { color: '#A1B9FB' },
   modalBackdrop: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, backgroundColor: 'rgba(0,0,0,0.60)' },
   dialogCard: { width: '100%', maxWidth: 311, alignItems: 'stretch', overflow: 'hidden', borderRadius: 12, backgroundColor: '#FFFFFF' },
   dialogContent: { gap: 8, alignItems: 'center', paddingHorizontal: 24, paddingTop: 32 },

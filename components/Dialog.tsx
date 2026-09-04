@@ -95,7 +95,13 @@ export function Dialog({
               onPress={onClose}
               style={({ pressed }) => [styles.closeButton, pressed && styles.pressed]}
             >
-              <CloseM accessibilityElementsHidden importantForAccessibility="no-hide-descendants" width={22} height={22} />
+              <CloseM
+                accessibilityElementsHidden
+                color={colors.text.placeholder}
+                height={22}
+                importantForAccessibility="no-hide-descendants"
+                width={22}
+              />
             </Pressable>
           ) : null}
           {hasContent ? (

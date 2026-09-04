@@ -1,0 +1,10 @@
+<svg preserveAspectRatio="none" overflow="visible" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g id="alarm">
+    <g id="Union">
+      <path d="M6.375 3V1.125H5.625V3H6.375Z" fill="white"/>
+      <path d="M2.25001 2.46968L3.53034 3.75001L3.00001 4.28034L1.71968 3.00001L2.25001 2.46968Z" fill="white"/>
+      <path d="M3 6.75V9.75H2.25V10.5H9.75V9.75H9V6.75C9 5.09315 7.65685 3.75 6 3.75C4.34315 3.75 3 5.09315 3 6.75ZM8.25 9.75H3.75V6.75C3.75 5.50736 4.75736 4.5 6 4.5C7.24264 4.5 8.25 5.50736 8.25 6.75V9.75Z" fill="white"/>
+      <path d="M10.2803 3.00001L9.00001 4.28034L8.46968 3.75001L9.75001 2.46968L10.2803 3.00001Z" fill="white"/>
+    </g>
+  </g>
+</svg>
