@@ -33,27 +33,29 @@ import UserTab from '../assets/user-tab.svg';
 import { BottomSheet } from './BottomSheet';
 import { FilterBar } from './FilterBar';
 import { Picker, type PickerColumns } from './Picker';
+import type { ProjectDetailsProject } from './ProjectDetailsView';
 import { colorThemes, typographyTokens } from '../designTokens';
 
 const colors = colorThemes.light;
 
 type MyDeviceHomeViewProps = {
   onBack: () => void;
+  onOpenProjectDetails: (project: ProjectDetailsProject) => void;
 };
 
 type ProjectSortId = 'default' | 'score-desc' | 'score-asc' | 'status-priority';
 type ProjectSortStatus = 'healthy' | 'unrated';
 
-type ProjectCardData = {
+type ProjectCardData = ProjectDetailsProject & {
   defaultOrder: number;
   healthScore: number | null;
-  id: string;
   isFavorite: boolean;
   hasNotification: boolean;
   status: ProjectSortStatus;
 };
 
 type ProjectCardProps = {
+  onOpenProjectDetails: (project: ProjectDetailsProject) => void;
   project: ProjectCardData;
 };
 
@@ -81,19 +83,23 @@ function projectSortLabelOf(sort: ProjectSortId) {
 
 const projects: readonly ProjectCardData[] = [
   {
+    address: '苏州工业园区星湖街218号苏州工业园区星号',
     defaultOrder: 0,
     healthScore: 98,
     id: 'bio-nano-park-featured',
     isFavorite: true,
     hasNotification: true,
+    name: '生物纳米科技园二期',
     status: 'healthy',
   },
   {
+    address: '苏州工业园区星湖街218号苏州工业园区星号',
     defaultOrder: 1,
     healthScore: null,
     id: 'bio-nano-park-standard',
     isFavorite: false,
     hasNotification: false,
+    name: '生物纳米科技园二期',
     status: 'unrated',
   },
 ];
@@ -199,24 +205,36 @@ function ValueLink({ value }: { value: string }) {
   );
 }
 
-function ProjectCard({ project }: ProjectCardProps) {
+function ProjectCard({ onOpenProjectDetails, project }: ProjectCardProps) {
   const hasHealthSummary = project.healthScore !== null;
 
   return (
     <View style={styles.projectCard}>
       <View style={styles.projectHeader}>
-        <Text numberOfLines={1} style={styles.projectName}>生物纳米科技园二期</Text>
+        <Text numberOfLines={1} style={styles.projectName}>{project.name}</Text>
         {project.isFavorite ? <HomeStarFilled height={18} width={18} /> : <HomeStar height={18} width={18} />}
         {project.hasNotification ? <HomeNotification height={18} width={18} /> : null}
       </View>
-      <Text numberOfLines={1} style={styles.projectAddress}>苏州工业园区星湖街218号苏州工业园区星号</Text>
+      <Text numberOfLines={1} style={styles.projectAddress}>{project.address}</Text>
       {hasHealthSummary ? (
         <View style={styles.healthRow}>
           <Text style={styles.projectScore}>项目健康综合评分：<Text style={styles.projectScoreStrong}>{project.healthScore}</Text> 分</Text>
-          <View style={styles.healthTag}>
+          <Pressable
+            accessibilityHint="进入项目详情"
+            accessibilityLabel={`${project.name}，项目状态健康`}
+            accessibilityRole="button"
+            hitSlop={10}
+            onPress={() => onOpenProjectDetails(project)}
+            style={styles.healthTag}
+          >
             <Text style={styles.healthTagText}>健康</Text>
-            <HomeChevronRight height={14} width={14} />
-          </View>
+            <HomeChevronRight
+              accessibilityElementsHidden
+              height={14}
+              importantForAccessibility="no-hide-descendants"
+              width={14}
+            />
+          </Pressable>
         </View>
       ) : null}
       <View style={styles.projectDivider} />
@@ -252,7 +270,7 @@ function BottomTab({
   );
 }
 
-export function MyDeviceHomeView({ onBack }: MyDeviceHomeViewProps) {
+export function MyDeviceHomeView({ onBack, onOpenProjectDetails }: MyDeviceHomeViewProps) {
   const insets = useSafeAreaInsets();
   const [projectSort, setProjectSort] = useState<ProjectSortId>(DEFAULT_PROJECT_SORT);
   const [sortPickerOpen, setSortPickerOpen] = useState(false);
@@ -479,7 +497,11 @@ export function MyDeviceHomeView({ onBack }: MyDeviceHomeViewProps) {
               ]}
             />
             {sortedProjects.map((project) => (
-              <ProjectCard key={project.id} project={project} />
+              <ProjectCard
+                key={project.id}
+                onOpenProjectDetails={onOpenProjectDetails}
+                project={project}
+              />
             ))}
           </View>
         </View>

@@ -30,11 +30,24 @@ import RiskStatus from '../assets/project-status-risk.svg';
 import UnratedStatus from '../assets/project-status-unrated.svg';
 import { colorThemes, typographyTokens } from '../designTokens';
 
+export type ProjectDetailsProject = {
+  address: string;
+  id: string;
+  name: string;
+};
+
 type ProjectDetailsViewProps = {
   onBack: () => void;
   onOpenDeviceDetails: () => void;
   onOpenExportReportSettings: () => void;
+  project?: ProjectDetailsProject;
   titleRef?: React.Ref<Text>;
+};
+
+const fallbackProject: ProjectDetailsProject = {
+  address: '漳州市龙文区水仙大街',
+  id: 'crowne-plaza',
+  name: '皇冠假日酒店',
 };
 
 type DeviceItem = {
@@ -84,13 +97,13 @@ function SectionHeading({ action, title }: { action?: string; title: string }) {
   );
 }
 
-function ProjectOverview() {
+function ProjectOverview({ project }: { project: ProjectDetailsProject }) {
   return (
     <View style={styles.overviewCard}>
       <View style={styles.projectSummary}>
         <View style={styles.projectCopy}>
-          <Text numberOfLines={1} style={styles.projectName}>皇冠假日酒店</Text>
-          <Text numberOfLines={1} style={styles.projectAddress}>漳州市龙文区水仙大街</Text>
+          <Text numberOfLines={1} style={styles.projectName}>{project.name}</Text>
+          <Text numberOfLines={1} style={styles.projectAddress}>{project.address}</Text>
         </View>
         <View style={styles.deviceCount}>
           <Text style={styles.deviceCountValue}>46/<Text style={styles.deviceCountTotal}>64</Text></Text>
@@ -275,6 +288,7 @@ export function ProjectDetailsView({
   onBack,
   onOpenDeviceDetails,
   onOpenExportReportSettings,
+  project = fallbackProject,
   titleRef,
 }: ProjectDetailsViewProps) {
   return (
@@ -298,7 +312,7 @@ export function ProjectDetailsView({
         <Text accessibilityRole="header" ref={titleRef} style={styles.navTitle}>项目详情</Text>
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} style={styles.scroll}>
-        <ProjectOverview />
+        <ProjectOverview project={project} />
         <ReportSection />
         <HealthSection onOpenExportReportSettings={onOpenExportReportSettings} />
         <DeviceList onOpenDeviceDetails={onOpenDeviceDetails} />

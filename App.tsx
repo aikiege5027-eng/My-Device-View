@@ -48,7 +48,7 @@ import { DeviceDynamicsDialog } from './components/DeviceDynamicsDialog';
 import { ExportReportSettingsView } from './components/ExportReportSettingsView';
 import { MyDeviceHomeView } from './components/MyDeviceHomeView';
 import { PageTemplate, type PageFooterActions } from './components/PageTemplate';
-import { ProjectDetailsView } from './components/ProjectDetailsView';
+import { ProjectDetailsView, type ProjectDetailsProject } from './components/ProjectDetailsView';
 import { WebScreenshotTool } from './components/WebScreenshotTool';
 import { colorThemes, componentTokens, typographyTokens } from './designTokens';
 
@@ -843,10 +843,12 @@ function DeviceView({
   deviceType,
   onBack,
   onBackToHome,
+  project,
 }: {
   deviceType: DeviceType;
   onBack: () => void;
   onBackToHome: () => void;
+  project?: ProjectDetailsProject;
 }) {
   const [liftDialog, setLiftDialog] = useState<LiftDialog>('hidden');
   const [liftScenario, setLiftScenario] = useState<LiftScenario>('success');
@@ -861,12 +863,16 @@ function DeviceView({
   const [liftLimitReached, setLiftLimitReached] = useState(false);
   const [restartLimitReached, setRestartLimitReached] = useState(false);
   const [records, setRecords] = useState<OperationRecord[]>([]);
-  const [devicePage, setDevicePage] = useState<'detail' | 'records' | 'projectDetails' | 'exportReportSettings' | 'fullDetails'>('detail');
+  const [devicePage, setDevicePage] = useState<'detail' | 'records' | 'projectDetails' | 'exportReportSettings' | 'fullDetails'>(
+    project ? 'projectDetails' : 'detail',
+  );
   const [deviceBackDemoVisible, setDeviceBackDemoVisible] = useState(false);
   const [deviceDynamicsVisible, setDeviceDynamicsVisible] = useState(false);
   const cloudDataTitleRef = useRef<Text>(null);
   const deviceDetailsBackRef = useRef<View>(null);
-  const pendingPageFocus = useRef<'detail' | 'projectDetails' | 'exportReportSettings' | null>(null);
+  const pendingPageFocus = useRef<'detail' | 'projectDetails' | 'exportReportSettings' | null>(
+    project ? 'projectDetails' : null,
+  );
   const projectDetailsTitleRef = useRef<Text>(null);
   const exportReportSettingsTitleRef = useRef<Text>(null);
   const progressTimer = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -1109,6 +1115,7 @@ function DeviceView({
           pendingPageFocus.current = 'exportReportSettings';
           setDevicePage('exportReportSettings');
         }}
+        project={project}
         titleRef={projectDetailsTitleRef}
       />
     );
@@ -1245,22 +1252,39 @@ const SCREENSHOT_TARGET_ID = 'app-screenshot-target';
 export default function App() {
   const [screen, setScreen] = useState<'workOrder' | 'device' | 'home'>('home');
   const [deviceType, setDeviceType] = useState<DeviceType>('KCECPUC');
+  const [selectedProject, setSelectedProject] = useState<ProjectDetailsProject | null>(null);
   const openDevice = (nextDeviceType: DeviceType) => {
     setDeviceType(nextDeviceType);
+    setSelectedProject(null);
     setScreen('device');
   };
+  const openProjectDetails = (project: ProjectDetailsProject) => {
+    setSelectedProject(project);
+    setScreen('device');
+  };
+  const returnToHome = () => {
+    setSelectedProject(null);
+    setScreen('home');
+  };
+
   return (
     <SafeAreaProvider>
       <View id={SCREENSHOT_TARGET_ID} style={styles.safeArea}>
         {screen === 'workOrder'
           ? <WorkOrderView onOpenDevice={openDevice} />
           : screen === 'home'
-            ? <MyDeviceHomeView onBack={() => setScreen('workOrder')} />
+            ? (
+              <MyDeviceHomeView
+                onBack={() => setScreen('workOrder')}
+                onOpenProjectDetails={openProjectDetails}
+              />
+            )
             : (
               <DeviceView
                 deviceType={deviceType}
                 onBack={() => setScreen('workOrder')}
-                onBackToHome={() => setScreen('home')}
+                onBackToHome={returnToHome}
+                project={selectedProject ?? undefined}
               />
             )}
       </View>
