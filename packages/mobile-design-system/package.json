@@ -1,0 +1,59 @@
+{
+  "name": "@kone/mobile-design-system",
+  "version": "0.1.0",
+  "description": "Shared KONE mobile design-system components and tokens for React Native and Expo.",
+  "license": "UNLICENSED",
+  "type": "commonjs",
+  "files": [
+    "dist",
+    "src",
+    "design-system.md",
+    "CONTRIBUTING.md"
+  ],
+  "main": "./dist/index.js",
+  "react-native": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "react-native": "./src/index.ts",
+      "browser": "./src/index.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./tokens": {
+      "types": "./src/designTokens.ts",
+      "react-native": "./src/designTokens.ts",
+      "browser": "./src/designTokens.ts",
+      "import": "./dist/designTokens.js",
+      "require": "./dist/designTokens.js",
+      "default": "./dist/designTokens.js"
+    }
+  },
+  "scripts": {
+    "clean": "node ./scripts/clean.mjs",
+    "build": "npm run clean && tsc -p tsconfig.build.json && npm run verify:package",
+    "typecheck": "tsc -p tsconfig.build.json --noEmit",
+    "verify:package": "node ./scripts/verify-package.mjs",
+    "prepack": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=19.1.0 <20",
+    "react-native": ">=0.81.0 <0.82",
+    "react-native-safe-area-context": ">=5.6.0 <6",
+    "react-native-svg": ">=15.12.0 <16"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.17",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-safe-area-context": "5.6.2",
+    "react-native-svg": "15.12.1",
+    "typescript": "5.9.2"
+  },
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "sideEffects": false
+}

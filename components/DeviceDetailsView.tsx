@@ -24,7 +24,7 @@ import Elevator from '../assets/elevator.svg';
 import ElevatorDoor from '../assets/elevator-door.svg';
 import Location from '../assets/location.svg';
 import ReportWave from '../assets/report-wave.svg';
-import { colorThemes, typographyTokens } from '../designTokens';
+import { colorThemes, typographyTokens } from '@kone/mobile-design-system';
 
 type DetailTab = 'realtime' | 'trend' | 'summary' | 'events';
 type SensorValue = { label: string; value: string; unit?: string };

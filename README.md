@@ -20,3 +20,16 @@ npm run ios
 ```
 
 也可以运行 `npm start` 后使用 Expo Go 扫码预览。
+
+## 共享 Mobile Design System
+
+通用 React Native 组件、Token、SVG 资产与设计规范已集中到 [`packages/mobile-design-system`](./packages/mobile-design-system)，包名为 `@kone/mobile-design-system`。当前 App 使用 pnpm workspace 依赖该包；根目录的同名组件文件仅作为旧相对导入路径的兼容层。
+
+```bash
+pnpm install
+pnpm run typecheck
+```
+
+包入口通过 `types` / `react-native` / `browser` condition 指向 TypeScript 源码，tsc 与 Metro 直接消费源码，因此 `pnpm start`、`pnpm run web`、`pnpm run typecheck` 和 `pnpm run build:web` 都不需要先执行 `pnpm run build:design-system`。后者只用于校验发布产物或真的要发布时。
+
+其他 Mobile 项目的安装、Metro SVG 配置、共享 Kiro steering 与发布流程见 [`packages/mobile-design-system/README.md`](./packages/mobile-design-system/README.md)。实际发布前还需由团队配置组织 npm registry 及发布凭证。

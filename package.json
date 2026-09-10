@@ -8,11 +8,14 @@
     "web": "expo start --web",
     "build:web": "expo export --platform web --output-dir dist && node scripts/prepare-sites-build.mjs",
     "build:pages": "expo export --platform web --output-dir dist && GITHUB_PAGES_BASE_PATH=My-Device-View node scripts/prepare-github-pages.mjs",
+    "build:design-system": "pnpm --filter @kone/mobile-design-system build",
     "ios": "expo start --ios",
     "android": "expo start --android",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "verify:design-system-peers": "node scripts/verify-design-system-peers.mjs"
   },
   "dependencies": {
+    "@kone/mobile-design-system": "workspace:0.1.0",
     "@expo/metro-runtime": "~6.1.2",
     "expo": "~54.0.0",
     "expo-status-bar": "~3.0.8",
@@ -20,7 +23,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.5",
-    "react-native-safe-area-context": "~5.6.0",
+    "react-native-safe-area-context": "5.6.2",
     "react-native-svg": "15.12.1",
     "react-native-web": "^0.21.2"
   },

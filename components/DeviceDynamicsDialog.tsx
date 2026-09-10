@@ -1,7 +1,6 @@
 import React from 'react';
 
-import { Dialog } from './Dialog';
-import { type StepItem, Steps } from './Steps';
+import { Dialog, Steps, type StepItem } from '@kone/mobile-design-system';
 
 const deviceDynamics: readonly StepItem[] = [
   { id: 'door-open-1712', title: '开门', meta: '17:12', description: '1F 开门完成，用时 2.1s', status: 'finish' },
@@ -35,7 +34,13 @@ export function DeviceDynamicsDialog({ onClose, visible }: { onClose: () => void
       title="设备动态"
       visible={visible}
     >
-      <Steps items={deviceDynamics} layout="vertical" readOnly theme="dot" />
+      <Steps
+        accessibilityLabel="设备动态有序流程"
+        items={deviceDynamics}
+        layout="vertical"
+        readOnly
+        theme="dot"
+      />
     </Dialog>
   );
 }

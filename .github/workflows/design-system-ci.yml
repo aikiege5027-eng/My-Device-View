@@ -1,0 +1,74 @@
+name: Mobile Design System CI
+
+on:
+  pull_request:
+    paths:
+      - 'packages/mobile-design-system/**'
+      - '.kiro/steering/design-system.md'
+      - 'components/**'
+      - 'App.tsx'
+      - 'designTokens.ts'
+      - 'metro.config.js'
+      - 'README.md'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'scripts/verify-design-system-peers.mjs'
+      - '.github/workflows/design-system-ci.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/mobile-design-system/**'
+      - '.kiro/steering/design-system.md'
+      - 'components/**'
+      - 'App.tsx'
+      - 'designTokens.ts'
+      - 'metro.config.js'
+      - 'README.md'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'scripts/verify-design-system-peers.mjs'
+      - '.github/workflows/design-system-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify native peer deduplication
+        run: pnpm run verify:design-system-peers
+
+      - name: Typecheck design system
+        run: pnpm --filter @kone/mobile-design-system typecheck
+
+      # The app resolves the package through its TypeScript sources, so these two
+      # steps run before any build and fail if that build-free path regresses.
+      - name: Typecheck consuming app
+        run: pnpm run typecheck
+
+      - name: Bundle consuming app for Web
+        run: pnpm run build:web
+
+      - name: Build and verify publish output
+        run: pnpm --filter @kone/mobile-design-system build

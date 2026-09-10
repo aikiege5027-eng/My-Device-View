@@ -1,7 +1,7 @@
 import React, { type PropsWithChildren, type ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colorThemes, componentTokens, typographyTokens } from '../designTokens';
+import { colorThemes, componentTokens, typographyTokens } from '@kone/mobile-design-system';
 
 type DataPanelTitleProps = PropsWithChildren<{
   action?: ReactNode;

@@ -47,10 +47,15 @@ import { DeviceDetailsView } from './components/DeviceDetailsView';
 import { DeviceDynamicsDialog } from './components/DeviceDynamicsDialog';
 import { ExportReportSettingsView } from './components/ExportReportSettingsView';
 import { MyDeviceHomeView } from './components/MyDeviceHomeView';
-import { PageTemplate, type PageFooterActions } from './components/PageTemplate';
+import {
+  PageTemplate,
+  colorThemes,
+  componentTokens,
+  typographyTokens,
+  type PageFooterActions,
+} from '@kone/mobile-design-system';
 import { ProjectDetailsView, type ProjectDetailsProject } from './components/ProjectDetailsView';
 import { WebScreenshotTool } from './components/WebScreenshotTool';
-import { colorThemes, componentTokens, typographyTokens } from './designTokens';
 
 const BLUE = '#1450F5';
 const BG = '#F2F4F7';

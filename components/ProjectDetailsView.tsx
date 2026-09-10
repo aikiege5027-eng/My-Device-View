@@ -28,7 +28,7 @@ import AttentionStatus from '../assets/project-status-attention.svg';
 import HealthStatus from '../assets/project-status-health.svg';
 import RiskStatus from '../assets/project-status-risk.svg';
 import UnratedStatus from '../assets/project-status-unrated.svg';
-import { colorThemes, typographyTokens } from '../designTokens';
+import { colorThemes, typographyTokens } from '@kone/mobile-design-system';
 
 export type ProjectDetailsProject = {
   address: string;

@@ -10,7 +10,7 @@ import type {
 
 // Figma Icon: cinema (Design Token China, node 612:923)
 import Cinema from '../assets/cinema.svg';
-import { colorThemes, typographyTokens } from '../designTokens';
+import { colorThemes, typographyTokens } from '@kone/mobile-design-system';
 
 export type WebScreenshotToolProps = {
   fileName: string;
@@ -36,6 +36,11 @@ declare global {
 }
 
 const CAPTURE_WIDTH = 375;
+/**
+ * Prototype-only overlays that must never appear in a capture: the tool itself plus
+ * any element opting out through `data-*` markers (see `VersionSwitcher`).
+ */
+const CAPTURE_EXCLUDED_SELECTOR = '[data-screenshot-tool],[data-version-switcher]';
 const CAPTURE_SCALE = 3;
 const DRAG_THRESHOLD = 5;
 const VIEWPORT_GUTTER = 8;
@@ -323,7 +328,7 @@ async function renderTarget(target: HTMLElement) {
   return html2canvas(document.body, {
     backgroundColor: theme.background.page,
     height: captureHeight,
-    ignoreElements: (element) => element.closest('[data-screenshot-tool]') !== null,
+    ignoreElements: (element) => element.closest(CAPTURE_EXCLUDED_SELECTOR) !== null,
     imageTimeout: 15_000,
     logging: false,
     onclone: (clonedDocument) => {

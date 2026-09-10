@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Dialog } from './Dialog';
+import { Dialog } from '@kone/mobile-design-system';
 
 type DeviceBackDemoDialogProps = {
   onClose: () => void;

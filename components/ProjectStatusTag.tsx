@@ -5,7 +5,7 @@ import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import AttentionIcon from '../assets/project-status-tag-attention.svg';
 import HealthIcon from '../assets/project-status-tag-health.svg';
 import RiskIcon from '../assets/project-status-tag-risk.svg';
-import { colorThemes, componentTokens, typographyTokens } from '../designTokens';
+import { colorThemes, componentTokens, typographyTokens } from '@kone/mobile-design-system';
 
 export type ProjectHealthStatus = 'attention' | 'healthy' | 'risk';
 

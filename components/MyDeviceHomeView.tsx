@@ -30,11 +30,15 @@ import HomeStatusRight from '../assets/home-status-right.svg';
 import HomeTab from '../assets/home-tab.svg';
 import ReportTab from '../assets/report-tab.svg';
 import UserTab from '../assets/user-tab.svg';
-import { BottomSheet } from './BottomSheet';
-import { FilterBar } from './FilterBar';
-import { Picker, type PickerColumns } from './Picker';
+import {
+  BottomSheet,
+  FilterBar,
+  Picker,
+  colorThemes,
+  typographyTokens,
+  type PickerColumns,
+} from '@kone/mobile-design-system';
 import type { ProjectDetailsProject } from './ProjectDetailsView';
-import { colorThemes, typographyTokens } from '../designTokens';
 
 const colors = colorThemes.light;
 
