@@ -26,6 +26,8 @@ import Location from '../assets/location.svg';
 import ReportWave from '../assets/report-wave.svg';
 import { colorThemes, typographyTokens } from '@kone/mobile-design-system';
 
+import { DeviceEventsPanel } from './DeviceEventsPanel';
+
 type DetailTab = 'realtime' | 'trend' | 'summary' | 'events';
 type SensorValue = { label: string; value: string; unit?: string };
 
@@ -311,32 +313,10 @@ function SummaryPanel() {
   );
 }
 
-function EventsPanel() {
-  const events = [
-    ['运行状态恢复正常', '今天 10:25'],
-    ['维保人员提交巡检备注', '10月25日 10:25'],
-    ['设备健康分更新为 88', '10月25日 12:00'],
-  ];
-  return (
-    <View style={styles.detailPanel}>
-      <Text accessibilityRole="header" style={styles.panelHeading}>最近设备事件</Text>
-      {events.map(([title, time]) => (
-        <View key={title} style={styles.eventRow}>
-          <View style={styles.eventDot} />
-          <View style={styles.eventCopy}>
-            <Text style={styles.eventTitle}>{title}</Text>
-            <Text style={styles.eventTime}>{time}</Text>
-          </View>
-        </View>
-      ))}
-    </View>
-  );
-}
-
 function DetailContent({ tab }: { tab: DetailTab }) {
   if (tab === 'trend') return <TrendPanel />;
   if (tab === 'summary') return <SummaryPanel />;
-  if (tab === 'events') return <EventsPanel />;
+  if (tab === 'events') return <DeviceEventsPanel />;
   return <RealtimePanel />;
 }
 
@@ -466,10 +446,5 @@ const styles = StyleSheet.create({
   summaryCard: { width: '47%', minHeight: 92, padding: 12, justifyContent: 'space-between', borderRadius: 8, backgroundColor: colors.brand.light },
   summaryLabel: { color: colors.text.secondary, ...typographyTokens.body14Regular },
   summaryValue: { color: colors.text.brand, ...typographyTokens.title24Semibold },
-  eventRow: { minHeight: 58, paddingVertical: 8, flexDirection: 'row', alignItems: 'flex-start', gap: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border.componentStroke },
-  eventDot: { width: 8, height: 8, marginTop: 7, borderRadius: 4, backgroundColor: colors.brand.default },
-  eventCopy: { flex: 1 },
-  eventTitle: { color: colors.text.primary, ...typographyTokens.body14Regular },
-  eventTime: { color: colors.text.placeholder, ...typographyTokens.footer12Regular },
   pressed: { opacity: 0.72 },
 });

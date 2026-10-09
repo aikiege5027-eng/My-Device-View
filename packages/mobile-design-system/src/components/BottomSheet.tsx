@@ -26,6 +26,14 @@ export type BottomSheetProps = {
   dismissAccessibilityLabel: string;
   /** 遮罩点击、系统返回键触发；调用方负责把 `visible` 置为 false。 */
   onRequestClose: () => void;
+  /**
+   * 宿主容器底色。
+   *
+   * - `container`（默认）：宿主铺 `bg-color-container`，面板与安全区留白连成一片白底。
+   * - `transparent`：宿主不铺底色，由面板自己负责背景。面板带顶部圆角时必须用这一档，
+   *   否则宿主的直角白底会盖在圆角外侧，让圆角在遮罩上看不出来。
+   */
+  surface?: 'container' | 'transparent';
   visible: boolean;
 };
 
@@ -42,6 +50,7 @@ export function BottomSheet({
   children,
   dismissAccessibilityLabel,
   onRequestClose,
+  surface = 'container',
   visible,
 }: BottomSheetProps) {
   const progress = useRef(new Animated.Value(0)).current;
@@ -125,7 +134,10 @@ export function BottomSheet({
         />
         <Animated.View
           onLayout={({ nativeEvent }) => setPanelHeight(nativeEvent.layout.height)}
-          style={[styles.panel, { opacity: measured ? 1 : 0, transform: [{ translateY }] }]}
+          style={[
+            surface === 'container' ? styles.panel : null,
+            { opacity: measured ? 1 : 0, transform: [{ translateY }] },
+          ]}
         >
           {children}
         </Animated.View>

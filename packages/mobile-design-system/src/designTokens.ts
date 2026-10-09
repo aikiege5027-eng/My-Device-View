@@ -14,6 +14,11 @@ export const colorThemes = {
       container: '#FFFFFF',
       secondaryContainer: '#F5F7FA',
       component: '#F2F4F7',
+      /**
+       * Figma `Color/grey/bg-color-component-active`。`theme=default` 按钮的按压底色。
+       * 与 `text.placeholder` 取值相同但语义不同。
+       */
+      componentActive: '#8F9195',
       transparent: 'transparent',
     },
     overlay: {
@@ -36,6 +41,33 @@ export const colorThemes = {
       contractHeaderBackground: '#D0DCFD',
       protocolBackground: '#F1F1FF',
       protocolBorder: '#DDDDFE',
+    },
+    deviceEvents: {
+      /**
+       * My Device View `Light/Gray/Gray-5`。设备事件页签中时间范围未选中项的文案色。
+       * 该文件使用自有 `Light/Gray` 色阶，与 China Design System 的 `text` 语义族不同源，
+       * 因此无法直接复用 `text.secondary`（`#676A72`）。
+       */
+      rangeInactiveText: '#566066',
+      /**
+       * My Device View `Light/Gray/Gray-4`。设备事件分类卡片未选中项的文案色。
+       * 与 `home.organizationText` 取值相同但语义不同，待两处设计稿统一后再合并。
+       */
+      categoryInactiveText: '#3D464C',
+      /**
+       * My Device View `color/grey/50`。故障代码统计条底色，
+       * 搭配 `background.component`（`color/grey/200`）作 1px 描边。
+       * 与 `projectDetails.scoreCardBackground` 取值相同但语义不同。
+       */
+      statBoxBackground: '#FAFBFC',
+    },
+    actionSheet: {
+      /**
+       * ActionSheet 宫格 media 槽的描边。Figma `item/4 columns` 与 `item/≤3 columns`
+       * 的 image 槽使用裸值 `rgba(20, 20, 20, 0.06)`，未绑定任何颜色变量，
+       * 因此在此登记为组件专属颜色而非语义 token。
+       */
+      gridMediaBorder: 'rgba(20, 20, 20, 0.06)',
     },
     table: {
       border: '#DFE1E8',
@@ -149,6 +181,13 @@ export const typographyTokens = {
     lineHeight: 20,
     fontWeight: '500',
   },
+  /** Typography 规范中的 `Footer` 12px/20 Semibold。 */
+  footer12Semibold: {
+    fontFamily: 'PingFang SC',
+    fontSize: 12,
+    lineHeight: 20,
+    fontWeight: '600',
+  },
   paragraph13Semibold: {
     fontFamily: 'PingFang SC',
     fontSize: 13,
@@ -228,6 +267,268 @@ export const componentTokens = {
     titleAccentWidth: 4,
     titleAccentHeight: 14,
     titleAccentRadius: 1,
+  },
+  button: {
+    /**
+     * Figma 另有 small `32` 与 large `48`，尚未逐一读取其内边距与图标尺寸，
+     * 因此只开放已确认的 extraSmall 与 medium。
+     * 排版按尺寸切换：medium 用 `H7 16/Semibold`，extraSmall 用 `Body 14/Medium`。
+     */
+    sizes: {
+      /**
+       * Figma `size=extraSmall`。带文字按钮为 `61×28`、内边距 `8/3`（节点 `26544:4044`）；
+       * `shape=square` + `singleIcon=true` 为 `28×28`、图标 `18×18`（节点 `26544:4056`）。
+       */
+      extraSmall: {
+        minHeight: 28,
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        squareSize: 28,
+        iconSize: 18,
+        radius: radiusTokens.medium,
+      },
+      /**
+       * Figma `size=large`。高 `48`、内边距 `20/12`、排版 `H7 16/Semibold`。
+       * 读取于 Calendar footer 的 Button 实例（节点 `27205:15150`），与 Button
+       * 规范页摘要一致。`shape=square` + `singleIcon=true` 的图标槽尺寸尚未读取，
+       * 因此该尺寸不提供 `squareSize` / `iconSize`，仅图标按钮不开放 `large`。
+       */
+      large: {
+        minHeight: 48,
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+        radius: radiusTokens.medium,
+      },
+      /**
+       * Figma `size=medium`。带文字按钮为 `83×40`、内边距 `16/8`；
+       * `shape=square` + `singleIcon=true` 为 `40×40`、图标 `20×20`（节点 `26626:6269`）。
+       */
+      medium: {
+        minHeight: 40,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        /** `shape=square` 的边长，等于 `minHeight`。 */
+        squareSize: 40,
+        /** `singleIcon=true` 时的图标槽尺寸。 */
+        iconSize: 20,
+        radius: radiusTokens.medium,
+      },
+    },
+  },
+  actionSheet: {
+    /** 面板顶部圆角，与 Picker 一致。 */
+    topRadius: 12,
+    /**
+     * `cancel=true` 时 cell 组与 cancel-cell 之间的 auto layout 间距。
+     * 该间距透出容器底色 `background.component`，是列表型面板唯一的分组方式。
+     */
+    groupGap: 8,
+    /** cell / description / cancel 之间的分割线宽度。 */
+    dividerWidth: 0.5,
+    cell: {
+      /** 24 行高 + 上下各 16 内边距。 */
+      minHeight: 56,
+      padding: 16,
+      /** 图标与文案之间的 auto layout 间距。 */
+      contentGap: 8,
+      iconSize: 24,
+      /** 圆点徽标直径（列表型 `badge=true`）。 */
+      badgeDotSize: 8,
+      /** 圆点相对文案右边缘 / 上边缘的偏移，来自 Figma `left:-2 / top:-16`。 */
+      badgeDotOffsetX: -2,
+      badgeDotOffsetY: -16,
+    },
+    description: {
+      /** 22 行高 + 上下各 12 内边距。 */
+      minHeight: 46,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    cancel: {
+      /** 24 行高 + 上下各 12 内边距。 */
+      minHeight: 48,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    grid: {
+      /**
+       * `gird` 容器的上下内边距。`description=true` 时取消上内边距，
+       * 由 description 行自身的 `12` 承担。
+       */
+      paddingVertical: 8,
+      item: {
+        paddingTop: 16,
+        paddingBottom: 12,
+        paddingHorizontal: 8,
+        /** media 槽与标题之间的 auto layout 间距。 */
+        gap: 8,
+      },
+      /** `item/4 columns`：4 列时的紧凑尺寸，标题用 `Foot 12/20`。 */
+      compactMediaSize: 40,
+      /** `item/≤3 columns`：2–3 列时的常规尺寸，标题用 `Body 14/22`。 */
+      regularMediaSize: 48,
+      /** icon 型 media 槽的内边距，内部图标为 24×24。 */
+      mediaPadding: 8,
+      mediaIconSize: 24,
+      mediaRadius: radiusTokens.medium,
+      mediaBorderWidth: 0.5,
+      /** `align=left` 时 item 为固定宽度并左侧紧排，不再等宽填满行。 */
+      leftItemWidth: 80,
+      badge: {
+        /** Figma `Badge 徽标`：高 16、左右内边距 4、最小内容宽 8、全圆角。 */
+        minHeight: 16,
+        paddingHorizontal: 4,
+        minContentWidth: 8,
+        radius: 999,
+        /**
+         * 徽标中心相对 media 槽右上角的偏移，来自 Figma
+         * `left:calc(50% + 18) / top:calc(50% - 33)` 在 93.75×96 item 内的解析结果。
+         */
+        offsetX: -2,
+        offsetY: -1,
+      },
+      swiper: {
+        padding: 12,
+        gap: 8,
+        dotSize: 8,
+      },
+      /** Figma 宫格每行最多 4 列。 */
+      maxColumns: 4,
+      minColumns: 2,
+    },
+  },
+  calendar: {
+    /**
+     * Figma 面板高度是显式值（容器 `375×668`），与 `375` 的展示宽度不同。
+     * 标题、星期表头与底部操作固定，月份列表自行滚动。
+     */
+    panelHeight: 668,
+    topRadius: 12,
+    title: {
+      /** 26 行高 + 上下各 16 内边距。 */
+      minHeight: 58,
+      padding: 16,
+      closeIconSize: 24,
+      /** close-M 在 title 行内的绝对位置，来自 Figma `left:335 / top:17`（375 基准）。 */
+      closeTop: 17,
+      closeRight: 16,
+    },
+    weekdays: {
+      /** 22 行高 + 上下各 12 内边距。 */
+      rowHeight: 46,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      /** 与日期表格一致的列间距。 */
+      columnGap: 4,
+    },
+    month: {
+      paddingHorizontal: 16,
+      /** 星期表头与首个月份、以及相邻月份之间的间距。 */
+      gap: 16,
+      /** 月份标题与日期表格之间的间距（标题 22 行高，表格起始 y=30）。 */
+      labelGap: 8,
+      /** 日期行之间的间距。 */
+      rowGap: 8,
+      columnGap: 4,
+    },
+    date: {
+      height: 60,
+      paddingVertical: 4,
+      radius: radiusTokens.medium,
+      /** 日期数字行高（`H7 16/Semibold`）。 */
+      lineHeight: 24,
+      /** prefix / suffix 行高（`10/16 Regular`）。 */
+      affixLineHeight: 16,
+      /**
+       * Figma 在 prefix / 日期行上使用 `margin-bottom: -2`，让三行内容在 `60`
+       * 的格子里收紧，不是行高本身的变化。
+       */
+      affixOverlap: -2,
+      /**
+       * `hight-light` 与区间两端向列间隙延伸的宽度，使区间底色跨列连续。
+       * 来自 Figma 的 `inset-[0_-4px]` / `right:-4` / `left:-4`，等于列间距。
+       */
+      bandOverhang: 4,
+    },
+    footer: {
+      /** Button 48 高 + 上下各 16 内边距。 */
+      minHeight: 80,
+      padding: 16,
+    },
+    timePicker: {
+      /** 与 Picker / DateTimePicker 相同的 header 高度，但只有居中标题。 */
+      headerHeight: 58,
+      /** 3 × 24 option + 2 × 16 间距 = 104。 */
+      contentHeight: 104,
+      /** indicator 在 timePicker 块内的绝对 y。 */
+      indicatorTop: 90,
+      maskHeight: 32,
+    },
+  },
+  cascader: {
+    /**
+     * Figma 面板高度是显式值（容器 `h-[580px]`），与 `375` 的展示宽度不同，
+     * 不是「仅供参考的画布尺寸」。宿主必须保证可用高度，内容区自行滚动。
+     */
+    panelHeight: 580,
+    topRadius: 12,
+    dividerWidth: 0.5,
+    title: {
+      /** 26 行高 + 上下各 16 内边距。 */
+      minHeight: 58,
+      padding: 16,
+      gap: 16,
+      closeIconSize: 24,
+      /** close-M 在 Title 行内的绝对位置，来自 Figma `left:335 / top:17`（375 基准）。 */
+      closeTop: 17,
+      closeRight: 16,
+    },
+    steps: {
+      paddingHorizontal: 16,
+      /** 有标题时 Steps 的上内边距为 `8`；标题层隐藏时为 `16`。 */
+      paddingTopWithTitle: 8,
+      paddingTopWithoutTitle: 16,
+      paddingBottom: 16,
+      /** stepper 圆点与内容之间的 auto layout 间距。 */
+      gap: 16,
+      dotSize: 8,
+      /** 圆点上下留白，使圆点中心与 `22` 行高的标题中心对齐。 */
+      dotPaddingVertical: 7,
+      dotBorderWidth: 1,
+      connectorWidth: 1,
+      /** 已选层级在标题下方的留白，也是连接线的长度来源。 */
+      completedPaddingBottom: 16,
+      titleGap: 16,
+      chevronSize: 16,
+      /** Figma `step` 轴当前只定义 1–4 层。 */
+      minStepCount: 1,
+      maxStepCount: 4,
+    },
+    tabs: {
+      height: 48,
+      itemPaddingHorizontal: 16,
+      /** 当前层级下方的指示条。 */
+      trackHeight: 3,
+      trackWidth: 16,
+      trackRadius: 999,
+    },
+    subtitle: {
+      /** 20 上内边距 + 22 行高 + 8 下内边距。 */
+      minHeight: 50,
+      paddingHorizontal: 16,
+      paddingTop: 20,
+      paddingBottom: 8,
+    },
+    option: {
+      /** 24 行高 + 上下各 16 内边距。 */
+      minHeight: 56,
+      paddingLeft: 16,
+      paddingRight: 16,
+      paddingVertical: 16,
+      /** 文案与勾选槽之间的 auto layout 间距。 */
+      gap: 16,
+      indicatorSize: 24,
+    },
   },
   checkbox: {
     rowMinHeight: 56,
@@ -352,6 +653,18 @@ export const componentTokens = {
     maskHeight: 48,
     minColumnCount: 1,
     maxColumnCount: 4,
+  },
+  dateTimePicker: {
+    /**
+     * DateTimePicker（Figma `24386:5248`）的面板几何与 Picker 完全一致
+     * （顶部圆角 12、内容区 184、option 24 + 间距 16、indicator 绝对 y=130、
+     * 渐隐 mask 48、底部内边距 16），因此共用 `componentTokens.picker`。
+     * 这里只登记该节点自己的轴。
+     */
+    /** 20 个变体（10 个 mode × title 有/无）的 header 均为 58，不存在 Picker 的 56 特例。 */
+    headerHeight: 58,
+    /** `mode=date with second` 为 6 列，是当前节点的最大列数。 */
+    maxColumnCount: 6,
   },
   filterBar: {
     /** Figma row height for the filter trigger line (Frame 1000015803, 344x20). */

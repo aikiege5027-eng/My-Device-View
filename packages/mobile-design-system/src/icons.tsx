@@ -116,3 +116,40 @@ export function CloseMIcon(props: SvgProps) {
     </Svg>
   );
 }
+
+/** Figma `chevron-right`（节点 `20818:6570`），基准 `16×16`。 */
+export function ChevronRightIcon(props: SvgProps) {
+  return (
+    <Svg fill="none" preserveAspectRatio="none" viewBox="0 0 16 16" {...props}>
+      <G>
+        <Path
+          clipRule="evenodd"
+          d="M5 3.90026L5.84336 3.08252L10.2596 7.36459C10.6648 7.75746 10.6648 8.40758 10.2596 8.80045L5.84336 13.0825L5 12.2648L9.31327 8.08252L5 3.90026Z"
+          fill="currentColor"
+          fillRule="evenodd"
+        />
+      </G>
+    </Svg>
+  );
+}
+
+/**
+ * Figma `item/unit/radio` 的 `theme=line` 勾选图形，基准 `24×24`。
+ *
+ * `theme=line` 的未选中态没有任何图形（Figma 导出为空 `<g>`），因此只需渲染
+ * 选中态的勾；调用方在未选中时应渲染同尺寸空槽位以保持行内对齐。
+ */
+export function RadioLineCheckIcon(props: SvgProps) {
+  return (
+    <Svg fill="none" preserveAspectRatio="none" viewBox="0 0 24 24" {...props}>
+      <G>
+        <Path
+          clipRule="evenodd"
+          d="M19 8.03877L10.39 16.7849C10.1141 17.0717 9.66671 17.0717 9.39078 16.7849L5.00003 12.0157L5.99926 10.9769L9.8904 15.2267L18.0008 7L19 8.03877Z"
+          fill="currentColor"
+          fillRule="evenodd"
+        />
+      </G>
+    </Svg>
+  );
+}

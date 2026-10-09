@@ -19,6 +19,10 @@
 | 按钮 Button | [China Design System for Mobile · Button](https://www.figma.com/design/EwHKttY9aJIOS7TM3RqGoW/China-Design-system-for-mobile?node-id=24317-5233) | `24317:5233` | 以 Figma 节点当前发布定义为准 |
 | 多选框 Checkbox | [China Design System for Mobile · Checkbox](https://www.figma.com/design/EwHKttY9aJIOS7TM3RqGoW/China-Design-system-for-mobile?node-id=24386-5247) | `24386:5247` | 以 Figma 节点当前发布定义为准，读取于 2026-09-04 |
 | 选择器 Picker | [China Design System for Mobile · Picker](https://www.figma.com/design/EwHKttY9aJIOS7TM3RqGoW/China-Design-system-for-mobile?node-id=24386-5250) | `24386:5250` | 当前包含 1–4 列及有/无标题共 8 个变体，读取于 2026-09-04；项目实现见 `src/components/Picker.tsx` |
+| 动作面板 ActionSheet | [China Design System for Mobile · ActionSheet](https://www.figma.com/design/EwHKttY9aJIOS7TM3RqGoW/China-Design-system-for-mobile?node-id=24386-5277) | 规范页 `24386:5277`、组件集 `27454:30291`、`item/action-cell` `27454:29041`、`item/action-des` `27454:29431` | 当前包含 64 个变体（`align` × `cancel` × `description` × `item` × `theme`），读取于 2026-10-09；项目实现见 `src/components/ActionSheet.tsx` |
+| 时间选择器 DateTimePicker | [China Design System for Mobile · DateTimePicker](https://www.figma.com/design/EwHKttY9aJIOS7TM3RqGoW/China-Design-system-for-mobile?node-id=24386-5248) | 规范页 `24386:5248`、组件集 `27227:19113`、`item/datetime-option` `27227:18734` | 当前包含 10 个 `mode` × 有/无标题共 20 个变体，读取于 2026-10-09；项目实现见 `src/components/DateTimePicker.tsx` |
+| 级联选择器 Cascader | [China Design System for Mobile · Cascader](https://www.figma.com/design/EwHKttY9aJIOS7TM3RqGoW/China-Design-system-for-mobile?node-id=24386-5246) | 规范页 `24386:5246`、组件集 `27500:27380` | 当前包含 32 个变体（`theme` × `step` × `subtitle` × `close-btn`），读取于 2026-10-09；项目实现见 `src/components/Cascader.tsx` |
+| 日历 Calendar | [China Design System for Mobile · Calendar](https://www.figma.com/design/EwHKttY9aJIOS7TM3RqGoW/China-Design-system-for-mobile?node-id=24386-5262) | 规范页 `24386:5262`、组件集 `27213:17690`、`item/date` `27205:14790` | 当前包含 18 个变体（`type` × `format` × `timePicker`）与 38 个 `item/date` 状态组合，读取于 2026-10-09；项目实现见 `src/components/Calendar.tsx` |
 | 标签 Tag | [China Design System for Mobile · Tag](https://www.figma.com/design/EwHKttY9aJIOS7TM3RqGoW/China-Design-system-for-mobile?node-id=24386-5275) | `24386:5275` | 以 Figma 节点当前发布定义为准，读取于 2026-09-04 |
 | 折叠面板 Collapse | [China Design System for Mobile · Collapse](https://www.figma.com/design/EwHKttY9aJIOS7TM3RqGoW/China-Design-system-for-mobile?node-id=24386-5265) | `24386:5265` | 当前包含 Collapse 16 个变体与 CollapseGroup 8 个变体，读取于 2026-09-09；项目实现见 `src/components/Collapse.tsx` |
 | 弹窗 Dialog | [China Design System for Mobile · Dialog](https://www.figma.com/design/EwHKttY9aJIOS7TM3RqGoW/China-Design-system-for-mobile?node-id=24386-5278) | `24386:5278` | 以 Figma 节点当前发布定义为准 |
@@ -231,6 +235,27 @@ Figma file keys：
 4. 将排版、颜色、圆角和图标映射到项目已有语义 token 与 SVG 资产；缺失定义时先回到 Figma 核实，不得自行补值。
 5. 对照 Figma 验证四档高度与内边距、所有 variant/theme/state、图标位置、Loading、Block/Group 布局及无障碍行为。
 
+### 项目实现现状
+
+包内实现为 `src/components/Button.tsx`。Figma 组件集共 2160 个已发布变体，当前代码只覆盖已读取确认的子集，**不要假设上方结构摘要描述的能力都已可用**：
+
+| 轴 | Figma 定义 | 代码已实现 |
+| --- | --- | --- |
+| `variant` | base / outline / dashed / text / ghost | 仅 `base` |
+| `theme` | primary / light / default / danger | `primary` / `light` / `default` |
+| `size` | large 48 / medium 40 / small 32 / extraSmall 28 | `extraSmall` / `medium` / `large`（`large` 仅文本形态） |
+| `shape` | rectangle / round / square / circle | `rectangle` / `round` / `square` |
+| 内容 | 纯文本 / prefixIcon / suffixIcon / 双图标 / singleIcon | 纯文本、`singleIcon` |
+| 状态 | Normal / Press / Disabled / Loading | Normal / Press / Disabled |
+| 其他 | Block、Button Group | `block` |
+
+- `theme=default` 的三态取自节点 `26544:4027`（常态）、`26561:4373`（按压）、`26561:4531`（禁用）：底色 `background.component` → `background.componentActive` → `background.component`，前景 `text.primary` → `text.primary` → `text.disabled`。
+- 两档尺寸的几何与排版：`medium` 为高 `40`、内边距 `16/8`、`shape=square` 时 `40×40` 配 `20×20` 图标槽、排版 `H7 16/Semibold`（节点 `26626:6269`）；`extraSmall` 为高 `28`、内边距 `8/3`、`shape=square` 时 `28×28` 配 `18×18` 图标槽、排版 `Body 14/Medium`（节点 `26544:4044` / `26544:4056`）。排版随尺寸切换，不得固定为单一 token。
+- 内容与形状已用判别联合绑定：文本按钮只接受 `rectangle` / `round`，仅图标按钮只接受 `square` 且强制要求 `accessibilityLabel`。
+- `size=large` 的文本形态已开放：高 `48`、内边距 `20/12`、排版 `H7 16/Semibold`，读取于 Calendar footer 的 Button 实例（节点 `27205:15150`），与 Button 规范页摘要一致。该尺寸的 `shape=square` 图标槽尚未读取，因此 `componentTokens.button.sizes.large` 不提供 `squareSize` / `iconSize`，props 的判别联合也阻止 `large` + 仅图标的组合。
+- `size=small`（高 `32`、内边距 `12/5`）尚未从 Figma 逐一核实图标尺寸与状态值，故未开放。新增尺寸前必须先读取对应节点。
+- 仅图标按钮的 `28×28` / `40×40` 均小于 44 的推荐触控尺寸。该尺寸由 Figma 指定，组件未自行加 `hitSlop`；若放在密集布局中，调用方需自行评估热区。
+
 ## Checkbox / CheckboxGroup
 
 ### 当前结构摘要
@@ -281,6 +306,12 @@ Figma file keys：
 
 - 统一实现为 `src/components/Checkbox.tsx`，导出 `Checkbox` 与 `CheckboxGroup`；`variant` 支持 `row`（Figma 基准行）、`inline`（无行内边距与分割线的紧凑行，用于「全选」等行内控件）与 `card`（带描边、圆角与左上角勾选角标的卡片行）。尺寸来自 `componentTokens.checkbox`。
 - `card` 与 `inline` 变体来自页面组合需要，Figma 未定义对应轴；扩展前请先回到 Figma 核实。
+
+### BottomSheet 宿主
+
+- 宿主实现为 `src/components/BottomSheet.tsx`，负责遮罩淡入、面板从底部滑入、`reduceMotion` 降级与系统返回；面板本体（Picker、ActionSheet、DateTimePicker、Cascader、Calendar 及业务面板）只负责静态内容。
+- `surface` 决定宿主是否铺底色：`container`（默认）铺 `bg-color-container`，让面板与安全区留白连成一片白底；`transparent` 不铺底色。**面板自带顶部圆角时必须用 `transparent`**，否则宿主的直角白底会盖在圆角外侧，使圆角在遮罩上看不出来。
+- 动效时长与曲线目前 Figma 未定义，属于待补齐的设计缺口。
 
 ## Picker
 
@@ -342,6 +373,7 @@ Figma file keys：
 ### 项目实现现状
 
 - 统一实现为 `src/components/Picker.tsx`，尺寸与间距来自 `componentTokens.picker`，Cancel / Confirm 复用 `src/components/Link.tsx`。业务不得再自行绘制滚轮、indicator、渐隐 mask 或 header。
+- 滚轮面板本体抽到 `src/components/internal/WheelPanel.tsx`，由 `Picker`、`DateTimePicker` 与 `Calendar` 的内嵌时间滚轮共用。`Picker` 只负责 1–4 列的类型约束与 `4 columns + title=false` 的 `headerHeight=56` 特例，面板几何不在 `Picker` 内重复定义。
 - 列数由 `PickerColumns` 元组联合在类型层限制为 1–4；`empty` 选项在类型上不带 `value`，因此无法成为选中项。标题通过判别联合约束：`title=true` 必须提供非空 `titleText`，`title` 缺省时必须提供 `accessibilityLabel`。
 - 选中值为受控 `PickerValue`，按稳定 column id 索引而非数组下标；`onChange` 在吸附完成后触发，`onConfirm` 提交当前受控值，组件自身不持久化业务值。
 - 滚轮用 `ScrollView` + `snapToInterval={40}` 实现，上下留白 `(184 - 40) / 2 = 72`，使首末项可进入中央选择位置。indicator 使用面板绝对 `y=130` token：常规 7 个变体与中央 option 对齐，`4 columns + title=false` 保留 Figma 当前 `2` 偏差。渐隐 mask 用 `react-native-svg` 渐变绘制，未引入新依赖。
@@ -389,6 +421,13 @@ Figma file keys：
 - prefix icon 接收 ReactNode，但必须放入设计尺寸槽并隐藏装饰性可访问内容；关闭图标继续使用项目 `react-native-svg` 资产模式。
 - 长文案和动态字体不得通过缩小字号或整体缩放处理；若截断、换行或 Tag Group 布局未在目标设计中定义，应先向用户确认。
 - CheckTag 的 pressed 不得通过 opacity 或临时混色派生未定义状态；若业务需要 press/focus 状态，应先读取 Figma 对应定义。
+
+### 项目实现现状
+
+- 统一实现为 `src/components/Tag.tsx`，导出 `Tag` 与 `CheckTag`；尺寸来自 `componentTokens.tag` / `componentTokens.checkTag`，关闭图标复用 `src/icons.tsx` 的 `CloseMIcon`。
+- `CheckTag` 的 `variant=light, checked=true` 按组件本体定义**不带描边**（节点 `26841:11318`）。若目标页面的实例在选中态额外加了品牌描边，应由调用方按选中态切换 `variant`（`lightOutline` / `light`）复现该实例覆盖，而不是改动组件的配色矩阵。
+- `uncheckedBorder` 来自页面组合需要，Figma 未定义对应轴；扩展前请先回到 Figma 核实。
+- `Tag` 的 `label` 是单段字符串，排版整套绑定在 `size` 上。需要「同一标签内两种字重」或「非 Tag 色板的前景色」时，Tag / CheckTag 无法表达，应先回到 Figma 补对应轴，或在页面侧按 Tag 的几何 token 实现并显式登记偏离。
 
 ### Figma 读取与实现流程
 
@@ -569,6 +608,281 @@ Figma file keys：
 
 - 包内实现为 `src/components/Divider.tsx`，覆盖上述 10 个 Figma 组合；`components/Divider.tsx` 是迁移期兼容导出。
 - 存量页面仍有手写分割线样式（`App.tsx`、`ProjectDetailsView.tsx` 等），尚未统一替换为 `Divider`。改动这些区域时应顺带迁移，不要复制既有写法。
+
+## ActionSheet
+
+### 当前结构摘要
+
+- 权威入口为节点 `24386:5277`（图层名 `ActionSheet 动作面板`），主组件集为 `27454:30291`，`item/action-cell` 组件集为 `27454:29041`，`item/action-des` 组件集为 `27454:29431`。
+- 主组件有 5 个 variant 轴：`theme=list|gird`、`align=center|left`、`cancel=true|false`、`description=true|false`、`item`（列表 2/4/6，宫格 2/4/6/8 与 `>8(only gird)`），共 64 个变体。Figma 图层名把「宫格」拼作 `gird`，代码统一使用 `grid` 并在此登记映射。
+- 面板顶部圆角为 `12`，`375` 是展示宽度而非固定组件宽度。
+- `theme=list` + `cancel=true`：容器底色为 `Color/grey/bg-color-component`，cell 组与 cancel-cell 之间有 `8` 的 auto layout 间距，该间距透出容器底色，是列表型唯一的分组方式。`cancel=false` 时没有该间距，容器底色也不参与视觉。
+- `item/action-cell` 基准高度为 `56`（`24` 行高 + 上下各 `16` 内边距），底色 `Color/grey/bg-color-container`，底部 `0.5` 分割线使用 `Color/grey/component-stroke`；组内最后一项为 `no-border=true`，不画分割线。
+- cell 的 `theme` 决定文案色：`default` → `text/text-color-primary`、`primary` → `Color/brand/brand-color`、`error` → `Color/error/error-color`；`disabled=true` 统一解析为 `text/text-color-disabled`。Figma 当前只为 `theme=default` 定义了 `disabled=true`。
+- cell 的 `icon=true` 在文案前增加 `24×24` 图标槽，内容间距为 `8`。`align=center` 时内容整体居中、文案占满剩余宽度并单行省略；`align=left` 时内容靠左。
+- cell 的 `badge=true` 是文案右上角的 `8×8` error 圆点（无文案），通过 `size-0` 锚点以 `left:-2 / top:-16` 定位。该状态下文案不再占满行宽，整体内容按 `align` 排列，徽标紧随文案。
+- `item/action-des` 基准高度为 `46`（`22` 行高 + 上下各 `12` 内边距），文案使用 `Body 14/22 Regular` 与 `text/text-color-placeholder`。列表型说明行为 `no-border=false`（带分割线），宫格型为 `no-border=true`（不带分割线）。
+- cancel-cell 基准高度为 `48`（`24` 行高 + 上下 `12`、左右 `16` 内边距），文案使用 `H7 16/24 Regular` 与 `text/text-color-primary`。
+- `theme=gird` 的容器底色即 cell 底色（`bg-color-container`），分组靠 `gird` 容器底部的 `0.5` 分割线。`gird` 容器上下内边距为 `8`；`description=true` 时取消上内边距，由说明行自身的 `12` 承担。
+- 宫格有两档 item：`item/4 columns` 为 `40` media 槽 + `Foot 12/20 Regular` 标题、基准行高 `96`；`item/≤3 columns` 为 `48` media 槽 + `Body 14/22 Regular` 标题、基准行高 `106`。两档的 item 内边距均为上 `16`、下 `12`、左右 `8`，media 与标题间距 `8`。
+- Figma 按 item 数选择列数与档位：`2`→2 列（`≤3 columns`）、`4`→4 列（`4 columns`）、`6`→2 行 × 3 列（`≤3 columns`）、`8`→2 行 × 4 列（`4 columns`）、`>8`→4 列。`align=left` 的宫格 item 改为固定 `80` 宽并在行内左侧紧排，始终使用 `4 columns` 档。
+- media 槽圆角为 `radius/radius-medium`。image 形态为 `cover` 图片 + `0.5` 描边，描边使用裸值 `rgba(20, 20, 20, 0.06)`（Figma 未绑定颜色变量）；icon 形态为 `Color/grey/bg-color-component` 底色 + `8` 内边距 + `24×24` 图标。
+- 宫格的徽标是带文案的 `Badge 徽标`（示例 `NEW`）而不是列表的圆点：高 `16`、左右内边距 `4`、最小内容宽 `8`、全圆角、error 底色、`Foot 10/Semibold` 白色文案，中心位于 media 槽右上角偏移 `(-2, -1)`。
+- Figma 另给出三种宫格用法：`Multiple Rows Scrolling 多行滚动宫格`、`with Swiper 带翻页宫格`（`27478:26787`）、`with Description And Scrolling 带描述多行滚动宫格`。`swiper` 行为 `p=12`、`gap=8`、`8×8` 圆点，当前页圆点为 `Color/brand/brand-color`，其余为 `Color/grey/component-stroke`。
+- Figma 中部分 `align=center` 宫格变体的高度比同结构变体多 `10` / `20`，来源是该变体使用了 `item/≤3 columns` 档（行高 `106` 而非 `96`），不是额外的结构或状态。
+- 当前节点未定义：遮罩、弹出/收起动画、点击遮罩关闭、系统返回、安全区、cell 的按压态与 hover 态、`theme=primary|error` 的禁用态、宫格 item 的禁用态、翻页的页大小与吸附规则。
+
+### 组件规则
+
+- IMPORTANT：项目中的底部动作面板必须复用统一 ActionSheet，不得在页面里各自用 `Pressable` + `Text` 拼出「操作列表 + 取消」结构。
+- IMPORTANT：实现前使用 file key `EwHKttY9aJIOS7TM3RqGoW` 和节点 `24386:5277` 读取最新定义；本摘要不能替代 Figma 中的间距、排版、颜色与 variant 组合。
+- 组件 API 必须围绕 `theme`、`align`、`cancel`、`description` 四个轴与 item 数据建模，并以判别联合阻止 Figma 未定义的组合：`cancel=true` 必须同时提供取消回调；列表 item 与宫格 item 的数据形状不得互换。
+- item 必须提供稳定 `id`，不得使用数组索引或显示文案兼作标识。
+- 列表 cell 的 `theme` 表达语义而非配色偏好：破坏性操作用 `error`，主操作用 `primary`，其余用 `default`。`disabled` 必须阻止回调，并使用 `text/text-color-disabled` 而不是整体 opacity。
+- 列表徽标是圆点、宫格徽标是带文案的 Badge，两者不得互换实现，也不得用字符或业务 SVG 仿制。Figma 的 `Badge 徽标` 目前没有独立权威节点登记在本文件，组件内实现只覆盖 ActionSheet 用到的形态；需要在其他场景使用徽标时应先读取其权威节点并抽成统一组件。
+- 宫格列数必须落在 Figma 定义的 2–4 列内。缺省时按 item 数推导（2→2、4→4、6→3、8→4、`>8`→4），数量不在该集合内时必须显式传入列数，实现层在 `__DEV__` 下告警。
+- media 槽只使用 image 或 icon 两种形态，尺寸随列数档位切换，不得在 4 列布局里使用 `48` 的 media 或在 2–3 列布局里使用 `40` 的 media。
+- 翻页宫格与多行滚动宫格只改变容器的滚动方式，不改变 item 几何、列数或徽标位置；swiper 圆点只反映当前页，不承载额外状态。
+- 分组方式不得自行替换：列表型用 `8` 间距 + 容器底色，宫格型用 `0.5` 分割线。不得为「更干净」给宫格也加间距，或给列表也加分割线。
+- 未在 Figma 定义的遮罩、动效、按压态、宫格禁用态不得自行补值；需要时先读取对应设计或补充设计系统定义。
+
+### 可访问性与交互
+
+- 每个 cell 与宫格 item 必须暴露为按钮并具有可读名称，默认取文案；`disabled` 必须同时向辅助技术暴露不可用状态并阻止回调。
+- 图标槽与 media 槽属于装饰元素，必须从无障碍树中隐藏，避免与按钮名称重复朗读。
+- 列表的圆点徽标没有文案，若承载「有新内容」等含义，必须由调用方提供可读说明并合并到按钮名称中；宫格徽标的文案必须进入按钮的可读名称。
+- 取消入口必须是独立按钮并有明确动作名称；`cancel=false` 时宿主必须提供等价的关闭路径（遮罩点击、系统返回等），不得让面板没有退出方式。
+- `56` 与 `96` / `106` 均已满足平台最小触控尺寸，但整行 / 整格必须都可点击，不得只把文案或图标作为热区。
+- swiper 圆点是装饰元素，必须从无障碍树隐藏；翻页状态应通过滚动容器本身的语义表达。
+
+### React Native / Expo 实现约束
+
+- cell 与宫格 item 均使用单一 `Pressable` 渲染，不要为 64 个变体复制 JSX，也不得用绝对坐标还原 `375` 示例。
+- 尺寸、内边距、media 尺寸、徽标几何与分割线宽度从 `componentTokens.actionSheet` 读取；颜色与排版只引用语义 token，media 描边使用 `colorThemes.light.actionSheet.gridMediaBorder`。
+- 徽标使用 `0×0` + `alignItems/justifyContent: 'center'` 的锚点容器定位，对应 Figma 的 `size-0` 包裹层；不要使用百分比 `translate`，各端解析不一致。
+- `align=center` 的宫格 item 使用 `flex: 1` + `minWidth: 0` 等宽分配，`align=left` 使用固定 `80` 宽 + `flexShrink: 0`；不得按 `93.75` 写死列宽。
+- Figma 的 `0.5` 分割线在该节点中是内描边（不占布局高度），而 React Native 的 `borderBottomWidth` 会叠加 `0.5` 到布局高度。基准 `280` / `256` 等整体高度用于视觉验收，不应写死面板或 cell 高度。
+- 翻页使用横向 `ScrollView` + `pagingEnabled`，页宽由 `onLayout` 实测得到；多行滚动使用纵向 `ScrollView` 并按「可视行数 × 行高」限制高度。两者不得同时启用。
+- 面板与 modal / bottom sheet presenter 分层实现，遮罩、动画、安全区与系统关闭行为由 `src/components/BottomSheet.tsx` 宿主负责。
+
+### Figma 读取与实现流程
+
+1. 使用 file key `EwHKttY9aJIOS7TM3RqGoW` 和节点 `24386:5277` 获取最新结构、变量与截图；必要时继续读取 `27454:30291`、`27454:29041`、`27454:29431`。
+2. 确认 `theme`、`align`、`cancel`、`description` 取值与 item 数量，并核对该组合在 Figma 中确实存在。
+3. 确认每个 item 的稳定 id、文案、语义 theme、禁用状态、图标 / media 来源与徽标文案。
+4. 将排版、颜色、圆角、media 几何与徽标映射到 `componentTokens.actionSheet` 与语义 token；缺失定义时先回到 Figma 核实。
+5. 对照 Figma 验证 `56` cell 高度、`46` 说明行、`48` 取消行、`8` 分组间距、宫格 `96` / `106` 行高、`40` / `48` media、徽标位置、`align=left` 的 `80` 固定宽、swiper 圆点配色，以及触控热区与无障碍状态。
+
+### 项目实现现状
+
+- 统一实现为 `src/components/ActionSheet.tsx`，尺寸与间距来自 `componentTokens.actionSheet`。`theme=list` 与 `theme=grid` 通过判别联合区分，各自的 item 数据形状不可互换。
+- `cancel` 为判别联合：`cancel=true` 必须提供 `onCancel`，`cancel` 缺省时不接收 `cancelText` / `onCancel`，不会留下取消行占位。
+- 宫格列数由 `resolveGridColumns` 按 Figma 的 item 数映射推导，`align=left` 固定 4 列并使用 `80` 宽固定档；数量不在 `2/4/6/8/>8` 内时在 `__DEV__` 下 `console.warn` 并回落到 4 列。
+- 列表徽标（`badge?: boolean`）与宫格徽标（`badge?: string`）按 Figma 的两种形态分别建模，不共用一套实现。
+- 翻页通过 `rowsPerPage` 启用（横向 `pagingEnabled` + swiper 圆点），多行滚动通过 `maxVisibleRows` 启用（纵向滚动）。页大小与可视行数在 Figma 中没有数值定义，由调用方按场景传入。
+- 已知设计缺口，扩展前必须先回到 Figma 核实：cell 的按压 / hover 态、`theme=primary|error` 的禁用态、宫格 item 的禁用态、`Badge 徽标` 的独立组件定义，以及面板的遮罩与动效。
+
+## DateTimePicker
+
+### 当前结构摘要
+
+- 权威入口为节点 `24386:5248`（图层名 `DateTimePicker 时间选择器`），主组件集为 `27227:19113`，`item/datetime-option` 组件集为 `27227:18734`。
+- 主组件有 2 个 variant 轴：`mode` 与 `title=true|false`，共 20 个变体。全部变体均为 `375×258`、header `58`，不存在 Picker 中 `4 columns + title=false` 的 `56` 特例。
+- 面板几何与 Picker 完全一致：顶部圆角 `12`、底部内边距 `16`、header 上下内边距 `16`、内容区高 `184`、左右各留 `16`、option 高 `24` + 间距 `16`（吸附步距 `40`）、每列显示 5 个 option、indicator 固定在面板绝对 `y=130` 且为 `343×40` + `radius/radius-medium` + `Color/grey/bg-color-component`、上下各 `48` 渐隐 mask。
+- Header 始终保留左侧 Cancel（`Body 14/22 Regular` + `text/text-color-secondary`）和右侧 Confirm（`Body 14/22 Regular` + `Color/brand/brand-color`）；`title=false` 只隐藏居中标题（`H6 18/26 Semibold` + `text/text-color-primary`），不隐藏 header 或两侧操作。
+- `item/datetime-option` 的三种形态与 Picker 的 option 一致：普通项 `H7 16/24 Regular` + `text/text-color-secondary`，选中项 `H7 16/24 Semibold` + `text/text-color-primary`，`empty=true` 为不显示文字的对齐占位。
+- `mode` 决定列构成，已逐一读取确认：`year`→年（1 列）、`month`→年 + 月（2 列）、`date`→年 + 月 + 日（3 列）、`date week`→年 + 月 + 日（3 列，日列文案含星期，示例 `10th Mon.`）、`date with hour`→4 列、`date with minute`→5 列、`date with second`→6 列、`hour`→1 列、`minute`→时 + 分（2 列）、`second`→时 + 分 + 秒（3 列）。6 列是当前节点的最大列数。
+- Figma 示例文案为英文本地化示例（`2021`、`January`、`8th`、`10th Mon.`），不是组件定义的格式。节点未定义任何日期格式化规则、语言包或月末 / 闰年处理。
+- 当前节点未定义：遮罩、弹出/收起动画、点击遮罩关闭、系统返回、安全区、disabled / loading / error 状态、异步 Confirm，以及可选时间范围的视觉表达。
+
+### 组件规则
+
+- IMPORTANT：项目中的日期 / 时间滚轮必须复用统一 DateTimePicker，不得为日报、周报、事件时间范围等场景分别复制滚轮、选中背景、渐隐 mask 或 header。
+- IMPORTANT：实现前使用 file key `EwHKttY9aJIOS7TM3RqGoW` 和节点 `24386:5248` 读取最新定义；本摘要不能替代 Figma 中的尺寸、排版、颜色与 `mode` 列构成。
+- DateTimePicker 与 Picker 的面板几何完全相同，必须共用同一套滚轮实现与 token，不得为时间场景另写一份滚轮。
+- 列构成只能由 `mode` 推导，不得让调用方任意拼列；不得开放 Figma 未定义的 `mode`，也不得把 `date week` 的星期拆成独立列。
+- 受控值必须是单一时间点而非多个独立数字，避免出现「2 月 31 日」这类不存在的组合。改动年 / 月时必须按当月实际天数收敛日，不得依赖 `Date.setMonth` 的月末溢出行为。
+- 可选范围必须由调用方显式给出：含年列的 `mode` 必须提供上下界，仅含时间列的 `mode` 在 Figma 中没有日期边界定义，不得自行推导默认范围或年份跨度。
+- 列文案的本地化必须由调用方提供。组件默认只输出裸数值，不得内置语言包、月份名、序数词或星期缩写，也不得按运行环境猜测格式。
+- Cancel / Confirm 必须复用统一 Link 组件的 `medium + default/primary + normal + no icon + no underline` 定义；滚动中的临时选择与 Confirm 后的提交必须分别回调，组件不得自行持久化业务值。
+- `title=false` 时不保留标题占位，调用方必须提供等价的 accessibility label。
+- 未在 Figma 定义的遮罩、动效、disabled / loading / error 与异步 Confirm 不得自行补值。
+
+### 可访问性与交互
+
+- 每一列暴露为独立的可调节控件，向辅助技术朗读当前值，并支持平台等价的前一项 / 后一项操作；多列不得合并成一个无法逐列操作的焦点。
+- 每列必须有明确的可读名称（年、月、日、时、分、秒），不得让列成为无名称区域。
+- 当前选中项必须通过可访问状态或值明确表达；indicator、渐隐 mask 与 `empty` 占位必须从无障碍树隐藏。
+- 滚动停止并完成吸附后再公告稳定选中值，避免滚动过程中连续播报无效中间状态。
+- 面板以 modal / bottom sheet 呈现时，宿主负责初始焦点、背景不可操作、关闭后的焦点恢复与系统返回路径。
+
+### React Native / Expo 实现约束
+
+- 使用与 Picker 相同的内部滚轮面板，按 `mode` 生成 1–6 列；不要为 10 个 `mode` 或有无标题复制 JSX。
+- 每列使用 `ScrollView` + `snapToInterval={40}`，上下留白为 `(184 - 40) / 2 = 72`，使首末项也能进入中央选择位置。
+- 多列容器使用 flex 等宽布局并裁切各列溢出；6 列时列宽约为 `57.17`，不得按 `375` 写死列宽。
+- 受控值使用 `Date`，按稳定的单位 id（而非数组下标）索引滚轮位置；外部值更新时必须可靠同步到各列，且不得产生回调循环。
+- 遮罩、动画、安全区与系统关闭行为由 `src/components/BottomSheet.tsx` 宿主负责。
+
+### Figma 读取与实现流程
+
+1. 使用 file key `EwHKttY9aJIOS7TM3RqGoW` 和节点 `24386:5248` 获取最新结构、变量与截图；必要时继续读取 `27227:19113` 与 `27227:18734`。
+2. 确认 `mode`、是否显示标题、标题文案，以及 Cancel / Confirm 的业务语义。
+3. 确认可选范围的上下界与各列的本地化格式，并与对应设计稿核对文案样式。
+4. 将容器、indicator、mask、标题、操作文案与 option 状态映射到 `componentTokens.picker` / `componentTokens.dateTimePicker` 与统一 Link 组件。
+5. 对照 Figma 验证 10 个 `mode` 的列数、有/无标题、普通 / 选中 option 排版、`58` header、`130` indicator、`40` 吸附步距、渐隐 mask，以及触控、动态字体与无障碍操作。
+
+### 项目实现现状
+
+- 统一实现为 `src/components/DateTimePicker.tsx`。滚轮面板抽到 `src/components/internal/WheelPanel.tsx`，由 `Picker`、`DateTimePicker` 与 `Calendar` 的内嵌时间滚轮共用；`Picker` 的 `4 columns + title=false` 仍通过 `headerHeight=56` 保留 Figma 现状的 `2` 偏差。
+- `mode` 到列构成的映射登记在 `modeUnits`，与上方摘要逐项对应；列数由 `mode` 决定，调用方无法任意拼列。
+- 受控值为 `Date`。含年列的 `mode` 在类型上强制要求 `minDate` / `maxDate`；仅含时间列的 `mode` 在类型上不接收这两个属性。
+- 每列候选值由 `unitRange` 按上层单位的当前取值收窄：只有落在边界年 / 月 / 日 / 时 / 分上时才收敛到边界分量。改动高位单位后统一用 `clampDate` 再夹一次区间，日按当月实际天数收敛。
+- 列文案通过 `formatters` 注入，默认只输出裸数值（月份按 1–12 呈现，内部仍为 0–11）。`date week` 的星期后缀必须由调用方在 `formatters.day` 中基于回调传入的候选 `Date` 生成。
+- 列的可读名称默认为英文（`Year`…`Second`），可通过 `columnLabels` 覆盖。
+- 已知设计缺口，扩展前必须先回到 Figma 核实：遮罩、弹出动画、点击遮罩关闭、系统返回、安全区、disabled / loading / error、异步 Confirm，以及超出可选范围的 option 视觉表达。
+
+## Cascader
+
+### 当前结构摘要
+
+- 权威入口为节点 `24386:5246`（图层名 `Cascader 级联选择器`），主组件集为 `27500:27380`。
+- 主组件有 4 个 variant 轴：`theme=step|tab`、`step=1|2|3|4`、`subtitle=true|false`、`close-btn=true|false`，共 32 个变体。
+- 面板为 `375×580`，顶部圆角 `12`，底色 `Color/grey/bg-color-container`，`overflow: hidden`。与 `375` 的展示宽度不同，`580` 是容器上的显式高度。
+- Title 行基准高度 `58`（`26` 行高 + 上下各 `16` 内边距），标题居中并使用 `H6 18/26 Semibold` + `text/text-color-primary`；`close-M` 为 `24×24`，在 `375` 基准下绝对定位于 `left:335 / top:17`（即右内边距 `16`）。
+- Figma Style 章节的「无标题级联选择器」是把整个 Title 层设为隐藏（`hidden=true`），不是独立的 variant 轴。因此关闭入口与标题同时存在或同时消失。
+- `theme=step`：Steps 区块左右内边距 `16`、下内边距 `16`、底部 `0.5` 分割线；上内边距在有标题时为 `8`，标题层隐藏时为 `16`。
+- Steps 的每一层为 `.master/vertical/dot`：圆点槽与内容的 auto layout 间距 `16`；圆点为 `8×8` 全圆角，上下留白 `7` 使其中心与 `22` 行高的标题中心对齐。已完成层级为 `Color/brand/brand-color` 描边空心圆点 + `1` 宽同色向下连接线 + `Body 14/22 Regular` + `text/text-color-primary` 文案 + 内容下内边距 `16`；当前层级为同色实心圆点、`Body 14/22 Semibold` + 品牌色文案、不渲染连接线也不加下内边距。每层标题行右侧都有 `16×16` 的 `chevron-right`。
+- `theme=tab`：`Tabs 选项卡` 高 `48`、底色 `bg-color-container`、底部 `0.5` 分割线。每个 `item/normal-line` 高 `48`、左右内边距 `16`、文案居中；已完成层级为 `Body 14/22 Regular` + `text/text-color-primary`，当前层级为 `Body 14/22 Semibold` + 品牌色并在底部居中渲染 `16×3` 全圆角品牌色 `track`。`step=4` 的变体在容器上使用 `justify-end`，即层级溢出时靠右收拢以保证当前层级可见。
+- Subtitle 区块基准高度 `50`（上内边距 `20` + `22` 行高 + 下内边距 `8`），左右内边距 `16`，文案使用 `Body 14/22 Regular` + `text/text-color-placeholder`。
+- RadioGroup 的每行（`Radio 单选`）基准高度 `56`：左内边距 `16`，内部 Wrapper 右内边距 `16`、文案与勾选槽间距 `16`、`items-start`；文案区上下内边距 `16`，使用 `H7 16/24 Regular` + `text/text-color-primary`；勾选槽为 `24×24`，上内边距 `16`。行之间没有分割线。
+- 行内勾选控件为 `item/unit/radio` 的 `theme=line`：选中态是品牌色勾形（`24` 视图框内的 `Union` 路径），未选中态导出为空图形。该 Radio 组件目前没有独立的权威节点登记在本文件中。
+- 当前节点未定义：遮罩、弹出/收起动画、点击遮罩关闭、系统返回、安全区、行的按压态 / hover 态、选项的禁用态、加载态、`step>4`、`tab` 的滚动与溢出规则，以及最终提交入口（面板本身没有确认按钮）。
+
+### 组件规则
+
+- IMPORTANT：项目中的多级联动选择必须复用统一 Cascader，不得在页面里各自拼出「层级指示 + 单选列表」。
+- IMPORTANT：实现前使用 file key `EwHKttY9aJIOS7TM3RqGoW` 和节点 `24386:5246` 读取最新定义；本摘要不能替代 Figma 中的间距、排版、颜色与 variant 组合。
+- 组件 API 必须围绕 `theme`、层级数组、`subtitle`、关闭入口与当前层级候选项建模。层级数量必须限制在 Figma 定义的 1–4 层内，不得开放更多层级。
+- 关闭入口必须与标题绑定：没有标题时不得单独渲染 `close-M`，因为 Figma 的无标题形态是隐藏整个 Title 层。
+- 层级推进、下一层数据加载、回退到上一层与最终提交由调用方受控。组件只渲染当前层级的候选项，不得在内部缓存层级栈或推断级联关系。
+- 层级与候选项必须提供稳定 `id` 与稳定值，不得使用数组索引或显示文案兼作标识。
+- `theme=step` 与 `theme=tab` 只改变层级指示的呈现方式，不得同时修改 Subtitle、RadioGroup 的间距与排版。
+- 已完成层级与当前层级的区分必须同时体现在排版与颜色上（Regular + 主文本色 vs Semibold + 品牌色），不得只靠颜色或只靠字重。`step` 的连接线必须与圆点中心对齐，且当前层级不渲染后续连接线。
+- 行内勾选控件必须使用 `theme=line` 的勾形，未选中时渲染同尺寸空槽位以保持行内对齐；不得改用圆形 radio、字符或业务 SVG 替代。该控件目前只在 Cascader 内实现，其他场景需要单选行时应先读取 Radio 的权威节点并抽成统一组件。
+- 面板本身没有确认按钮。需要显式提交时应先确认对应设计，不得在组件内自行追加底部操作区。
+- 未在 Figma 定义的遮罩、动效、按压态、禁用态、加载态不得自行补值。
+
+### 可访问性与交互
+
+- 面板必须有可读名称：有标题时取标题，无标题时由调用方提供等价的 accessibility label。
+- 关闭入口必须是独立按钮并有明确动作名称；`24×24` 图形不等于触控热区，必须在不改变视觉布局的前提下扩展热区。
+- 候选项必须暴露 `radio` 角色与选中状态，并保持逐项可聚焦；选中状态不得只依赖勾形图标的视觉。
+- 可回退的层级必须暴露为可操作控件并有明确名称；不可回退的层级（通常是当前层级）不得被错误地暴露为可点击。
+- `chevron-right` 与勾选图形属于装饰元素，必须从无障碍树中隐藏。
+- 候选项列表溢出时必须可滚动，且 Title、层级指示与 Subtitle 不随列表滚出视口。
+
+### React Native / Expo 实现约束
+
+- 层级指示与候选项分别使用单一 `Pressable` 渲染，不要为 32 个变体复制 JSX，也不得用绝对坐标还原 `375` 示例。
+- 尺寸、内边距、圆点几何、连接线宽度与指示条尺寸从 `componentTokens.cascader` 读取；颜色与排版只引用语义 token。
+- 连接线使用 `flex: 1` 的 `1` 宽 `View` 填满圆点下方的剩余高度，由已完成层级的 `16` 下内边距提供长度；不得写死 `16` 的线长。
+- `theme=tab` 使用横向 `ScrollView` 表达 Figma `justify-end` 的「保证当前层级可见」意图，不得按 `375` 写死行宽。
+- 候选项列表使用 `flex: 1` 的 `ScrollView`；面板高度取 `componentTokens.cascader.panelHeight`（`580`），宿主必须保证可用高度。
+- 遮罩、动画、安全区与系统关闭行为由 `src/components/BottomSheet.tsx` 宿主负责。
+
+### Figma 读取与实现流程
+
+1. 使用 file key `EwHKttY9aJIOS7TM3RqGoW` 和节点 `24386:5246` 获取最新结构、变量与截图；必要时继续读取组件集 `27500:27380`。
+2. 确认 `theme`、层级数量（1–4）、是否显示说明行与关闭入口，并核对该组合在 Figma 中确实存在。
+3. 确认每个层级的稳定 id、显示文案（已选值或待选提示）、是否可回退，以及当前层级的候选项与受控选中值。
+4. 将排版、颜色、圆点、连接线、指示条与勾选图形映射到 `componentTokens.cascader`、语义 token 与包内 `ChevronRightIcon` / `RadioLineCheckIcon`。
+5. 对照 Figma 验证 `58` 标题行、Steps 的 `8` / `16` 上内边距、`8` 圆点与 `7` 留白、`16` 间距、`50` 说明行、`48` tab 高度与 `16×3` 指示条、`56` 行高、`24` 勾选槽，以及触控热区与无障碍状态。
+
+### 项目实现现状
+
+- 统一实现为 `src/components/Cascader.tsx`，尺寸与间距来自 `componentTokens.cascader`，图标来自 `src/icons.tsx` 的 `ChevronRightIcon`、`RadioLineCheckIcon` 与既有 `CloseMIcon`。
+- `CloseMIcon` 复用既有的 `22` 视图框实现。该节点导出的是 `24` 视图框版本，但两者的 X 图形都占视图框的 `50%`，按 `24×24` 渲染结果一致，因此没有新增重复资产。
+- 层级数量由 `CascaderSteps` 元组联合在类型层限制为 1–4；数组最后一项即当前层级。
+- 标题与关闭入口通过判别联合绑定：没有 `title` 时无法传入 `onClose`，对应 Figma 隐藏整个 Title 层的处理。
+- 当前层级的选中值受控（`value` + `onChange`），层级推进与数据加载由调用方负责；组件不保存层级栈。
+- `theme=tab` 使用横向滚动承载 Figma `step=4` 变体的 `justify-end` 意图；`theme=step` 的连接线由已完成层级的下内边距撑开。
+- 已知设计缺口，扩展前必须先回到 Figma 核实：行的按压 / hover 态、选项禁用态与加载态、`step>4`、Radio 的独立权威节点与完整状态矩阵，以及面板的遮罩、动效与提交入口。
+
+## Calendar
+
+### 当前结构摘要
+
+- 权威入口为节点 `24386:5262`（图层名 `Calendar 日历`），主组件集为 `27213:17690`，`item/date` 组件集为 `27205:14790`。
+- 主组件有 3 个 variant 轴：`type=single|multiple|range`、`format=default|suffix|prefix&suffix`、`timePicker=false|true`，共 18 个变体。`item/date` 有 9 个 variant 轴，当前发布 38 个状态组合。
+- 面板为 `375×668`，顶部圆角 `12`，底色 `Color/grey/bg-color-container`。`668` 是容器上的显式高度；`375` 仍是展示宽度。
+- title 行与 Cascader 一致：基准高度 `58`、内边距 `16`、标题 `H6 18/26 Semibold` + `text/text-color-primary` 居中、`close-M` 为 `24×24` 且在 `375` 基准下位于 `left:335 / top:17`。
+- `days` 星期表头基准高度 `46`（`22` 行高 + 上下各 `12` 内边距），左右内边距 `16`、列间距 `4`，7 个 item 等宽；文案使用 `Body 14/22 Regular` + `text/text-color-secondary` 居中。Figma 当前从 `SUN` 起。
+- 内容区按月连续排列并纵向滚动：星期表头与首个月份、以及相邻月份之间的间距为 `16`。每个 `month` 块左右内边距 `16`，月份标题（示例 `March 2023`）为 `Body 14/22 Regular` + `text/text-color-primary`，标题与 `table` 之间间距 `8`。
+- `table` 在 `375` 基准下宽 `343`，行高 `60`、行间距 `8`、列间距 `4`，因此单格宽约 `45.57`（`(343 - 6 × 4) / 7`）。`item/date` 主组件标称 `44×60`，实例会被拉伸到列宽。
+- `item/date` 为上下内边距 `4`、圆角 `radius/radius-medium` 的纵向容器：日期数字使用 `H7 16/24 Semibold`，prefix / suffix 使用 `10/16 Regular`。Figma 用 `margin-bottom: -2` 让多行内容在 `60` 的格子里收紧，只在后面还有一行内容时出现。
+- `item/date` 的垂直对齐由实际行数决定：只有日期 → 居中（`27205:14789`）；日期 + suffix → 底部对齐（`27205:14788`）；prefix + 日期 + suffix → 居中（`27205:14787`）；prefix + 日期 → 顶部对齐（`27205:14927`）。
+- `item/date` 的状态取值：默认文案 `text/text-color-primary`；`prefix=true` 时 prefix 与日期数字整体使用 `Color/error/error-color`（suffix 仍为 `text/text-color-disabled`）；`now=true` 日期数字使用 `Color/brand/brand-color`；`disabled=true` 文案使用 `text/text-color-disabled`；`empty=true` 为无底色、无文案的占位。
+- 选中与区间：`select=true` 为 `Color/brand/brand-color` 底色 + 四角 `6` 圆角 + 白色文案；`select-start=true` 只保留左侧圆角并在右侧 `-4` 处补一条 `4` 宽 `brand-color-light`；`select-end=true` 镜像处理；`hight-light=true` 为 `brand-color-light` 底色、无圆角，并额外有一层 `inset: 0 -4px` 的同色背景。`4` 的延伸量等于列间距，作用是让区间底色跨列连续。
+- footer 基准高度 `80`（Button `48` + 上下各 `16` 内边距），底色 `bg-color-container`，内含一个占满可用宽度的 Button（`size=large`、`variant=base`、`theme=primary`、`shape=round`，内边距 `20/12`、`H7 16/Semibold`、白色文案）。
+- `timePicker=true` 在 footer 之上插入 `375×178` 的 `timePicker` 块：header `58` 只有居中标题（示例 `Time`），没有 Cancel / Confirm；内容区高 `104`（3 个 option）、2 列（时、分）、左右各留 `16`、列间距 `16`；indicator 位于块内绝对 `y=90`，为 `343×40`；上下渐隐 mask 各 `32`；块底部内边距 `16`。该块复用与 Picker 相同的 option 与吸附几何。
+- 当前节点未定义：遮罩、弹出/收起动画、点击遮罩关闭、系统返回、安全区、格子的按压态 / hover 态、`select` 与 `now` / `disabled` 的组合、月份切换入口、周起始日切换、确认按钮的禁用 / loading 态，以及 `timePicker` 的分钟步进。
+
+### 组件规则
+
+- IMPORTANT：项目中的日期选择必须复用统一 Calendar，不得为单选、多选、区间或带时间的场景分别绘制月份表格、区间底色或底部操作。
+- IMPORTANT：实现前使用 file key `EwHKttY9aJIOS7TM3RqGoW` 和节点 `24386:5262` 读取最新定义；本摘要不能替代 Figma 中的格子几何、状态配色与 variant 组合。
+- 组件 API 必须围绕 `type`、`format`、`timePicker` 三个轴与受控选中值建模，并用判别联合把每种 `type` 绑定到对应的值形状（单个日期 / 日期数组 / 区间对象），不得用一个松散对象覆盖三种语义。
+- 月份范围必须由调用方显式给出上下界，组件不得自行决定渲染多少个月或默认年份跨度。
+- 格子状态的解析顺序必须明确且不叠加：`empty` → `disabled` → 选中（含区间端点）→ `hight-light` → `now` → 默认。Figma 没有定义 `select` 与 `now`、`select` 与 `disabled` 的组合，不得自行合成这些视觉。
+- 区间底色必须通过向列间隙延伸 `4` 来保持连续：中间段向左右各延伸，两端只向区间内侧延伸。不得改用负 margin 吞掉列间距，也不得去掉列间距来「省掉」延伸层。
+- 区间端点的圆角必须按 Figma 裁切（起点只留左侧、终点只留右侧）；只选了起点时没有区间可衔接，应按完整圆角的 `select` 渲染。
+- `format` 决定格子的行结构与垂直对齐，具体文案由每一天的数据提供。某一天没有对应文案时保留空行以维持行内对齐，不得让同一行的格子高度不一致。
+- `prefix` 表达节日 / 特殊标记语义，会把 prefix 与日期数字整体改为 error 语义色；不得把它当作普通副标题使用，也不得单独给 prefix 上色而让日期保持主文本色。
+- 月份标题与星期表头的本地化必须由调用方提供。组件不得内置语言包、月份名或星期缩写，也不得按运行环境猜测格式。
+- 底部操作必须复用统一 Button 组件的 `large + round + base/primary + block`，不得在组件内重画按钮或改用其他尺寸。
+- `timePicker` 必须复用与 Picker / DateTimePicker 相同的滚轮实现与 option 几何，只替换内容高度、mask 高度、indicator 位置并隐藏两侧操作；不得另画一套滚轮，也不得在该块内重复提交入口。
+- 未在 Figma 定义的遮罩、动效、按压态、月份切换入口、确认按钮状态与分钟步进不得自行补值。
+
+### 可访问性与交互
+
+- 面板必须有可读名称：有标题时取标题，无标题时由调用方提供等价的 accessibility label。
+- 每个可选日期必须暴露为按钮并具有可读名称与选中状态；`disabled` 必须同时暴露不可用状态并阻止回调，`empty` 占位必须从无障碍树中隐藏。
+- 状态不得只依赖颜色：选中、区间、今天与禁用必须同时通过可访问状态或可读名称表达。
+- 星期表头是表格的列说明，应从无障碍树中隐藏或作为列标题提供，不得逐个朗读成可操作元素。
+- 月份标题应作为对应月份的区块标题，使辅助技术能在长列表中定位当前月份。
+- `timePicker` 的时、分两列必须分别暴露为可调节控件并有明确名称；indicator 与渐隐 mask 必须从无障碍树隐藏。
+- 底部确认按钮必须保持可达，不得因月份列表过长而被挤出视口；按钮须遵守 Button 的 disabled / loading 与防重复提交规则。
+
+### React Native / Expo 实现约束
+
+- 月份、周、格子均由数据驱动渲染，不要为 18 个变体复制 JSX，也不得用绝对坐标还原 `375×668` 示例。
+- 尺寸、间距、格子几何、区间延伸量与 `timePicker` 几何从 `componentTokens.calendar` 读取；颜色与排版只引用语义 token。
+- 格子使用 `flex: 1` + `minWidth: 0` 等宽分配并配合 `gap: 4`，不得按 `45.57` 写死列宽。
+- 区间延伸层使用绝对定位的 `View`（`left/right: -4`）并设置为不拦截触摸；容器不得设置 `overflow: 'hidden'`，否则延伸层会被裁掉。
+- 标题、星期表头、`timePicker` 与 footer 固定在滚动容器之外，只有月份列表使用 `flex: 1` 的 `ScrollView`；面板高度取 `componentTokens.calendar.panelHeight`（`668`），宿主必须保证可用高度。
+- 日期比较必须按本地年 / 月 / 日比较，不得直接比较时间戳，避免同一天的不同时刻被判为不同日期。
+- 遮罩、动画、安全区与系统关闭行为由 `src/components/BottomSheet.tsx` 宿主负责。
+
+### Figma 读取与实现流程
+
+1. 使用 file key `EwHKttY9aJIOS7TM3RqGoW` 和节点 `24386:5262` 获取最新结构、变量与截图；必要时继续读取组件集 `27213:17690` 与 `item/date` 组件集 `27205:14790`。
+2. 确认 `type`、`format`、`timePicker` 取值，并核对该组合在 Figma 中确实存在。
+3. 确认月份范围、周起始日、每一天的附加文案与禁用状态、今天的标记，以及月份标题与星期表头的本地化文案。
+4. 将格子几何、状态配色、区间延伸、底部 Button 与 `timePicker` 映射到 `componentTokens.calendar`、语义 token 与统一 Button / 内部滚轮面板。
+5. 对照 Figma 验证 `58` 标题行、`46` 星期表头、`16` 月份间距、`8` 标题间距、`60` 行高与 `8` / `4` 间距、四种 `format` 的垂直对齐、`select` / `select-start` / `select-end` / `hight-light` / `now` / `disabled` / `empty` 全部状态、`80` footer，以及 `timePicker` 的 `104` 内容区、`90` indicator 与 `32` mask。
+
+### 项目实现现状
+
+- 统一实现为 `src/components/Calendar.tsx`，尺寸与间距来自 `componentTokens.calendar`，关闭图标复用 `src/icons.tsx` 的 `CloseMIcon`。
+- `type` 通过判别联合绑定值形状：`single` 为 `Date | undefined`，`multiple` 为 `readonly Date[]`，`range` 为 `{ start?, end? }`。选中值与时间值全部受控，组件不持久化业务值。
+- 格子状态由 `resolveDateState` 按上方规则定序解析；区间中间段与两端的延伸层分别用 `bandFull` / `bandRight` / `bandLeft` 实现，延伸量取 `componentTokens.calendar.date.bandOverhang`（`4`，等于列间距）。
+- 垂直对齐由 `alignByFormat` 按实际渲染的行数决定，而不是直接按 `format` 固定；`marginBottom: -2` 只加在后面还有一行内容的行上。
+- 每一天的附加文案与禁用状态通过 `meta` 传入，键为本地时区的 `YYYY-MM-DD`；月份标题与星期表头文案由 `formatMonth` 与 `weekdayLabels` 注入，组件不内置任何语言包。
+- 底部操作复用统一 `Button` 的 `size=large` + `shape=round` + `theme=primary` + `block`。该尺寸的几何（高 `48`、内边距 `20/12`、`H7 16/Semibold`）读取于本节点的 Button 实例 `27205:15150`，与 Button 规范页摘要一致；`large` 的仅图标形态仍未开放，详见 Button 的「项目实现现状」。
+- `timePicker` 复用 `src/components/internal/WheelPanel.tsx`，只覆写 `contentHeight=104`、`maskHeight=32`、`indicatorTop=90`、`showActions=false`、`roundedTop=false`。分钟步进在 Figma 中没有定义，默认逐分钟并可由调用方覆盖。
+- `firstDayOfWeek` 默认 `0`（周日起，与 Figma 当前定义一致），可切到周一起；切换时 `weekdayLabels` 的顺序必须由调用方同步调整。
+- 已知设计缺口，扩展前必须先回到 Figma 核实：格子的按压 / hover 态、`select` 与 `now` / `disabled` 的组合、月份切换入口、确认按钮的禁用 / loading 态、`timePicker` 的分钟步进与可选时间范围，以及面板的遮罩与动效。
 
 ## Icon
 

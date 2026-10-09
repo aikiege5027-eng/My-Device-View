@@ -8,6 +8,7 @@ KONE Mobile 项目共享的 React Native / Expo 设计系统包。组件、Token
 
 - 基础组件：`Button`、`Link`、`Checkbox`、`CheckboxGroup`、`Tag`、`CheckTag`、`Divider`
 - 组合组件：`FilterBar`、`Picker`、`PageTemplate`、`Dialog`、`BottomSheet`、`Steps`、`Collapse`、`CollapseGroup`
+- 移动端操作面板：`ActionSheet`、`DateTimePicker`、`Cascader`、`Calendar`（面板本体不含遮罩与动效，需由 `BottomSheet` 宿主承载）
 - Token：`colorThemes`、`typographyTokens`、`radiusTokens`、`componentTokens`
 - 所有组件公开 Props 和数据类型均从包根入口导出
 
@@ -65,7 +66,7 @@ pnpm run typecheck
 
 - 当前实现使用 `PingFang SC`、`KONE Information` 和 `SF Pro Text` token；本包不分发受许可约束的字体文件，宿主应用负责加载或提供平台 fallback。
 - 当前组件保持现有 Light theme 基线。`colorThemes.dark` 尚不完整，因此本版本不宣称支持运行时主题切换。
-- Dialog、Steps、Button 和 Link 目前仅实现项目已经验证的子集，新增组合前必须先读取对应 Figma 节点。
+- Dialog、Steps、Button 和 Link 目前仅实现项目已经验证的子集，新增组合前必须先读取对应 Figma 节点。Button 的逐轴覆盖范围见 `design-system.md` 的「Button › 项目实现现状」。
 
 ## 发布
 
