@@ -122,18 +122,12 @@ const faultCodeStats: readonly FaultCodeStat[] = [
 const panelStatCount = 3;
 
 /**
- * 面板行最多展示 3 个统计胶囊：被取消选中的优先占位（组内仍按次数排序），剩余位置
- * 用仍选中的高发代码补齐。默认没有排除项时就是次数最高的 3 个；一旦有排除项，
- * 它们会顶到前面，保证已生效的筛选在不打开「更多」时也看得见。
+ * 面板行固定展示次数最高的 3 个故障代码，顺序不随选择变化。
  *
- * 排除超过 3 个时其余由「更多」面板承载 —— Figma 未定义该情形，这是实现层的取舍。
+ * 代价是：排除项不在这 3 个里时，收起状态下看不到该筛选已生效，需要打开「更多」
+ * 才能确认。这是刻意选择的「顺序稳定优先」。
  */
-function panelStats(excluded: readonly string[]) {
-  const dropped = faultCodeStats.filter((item) => excluded.includes(item.code));
-  const kept = faultCodeStats.filter((item) => !excluded.includes(item.code));
-
-  return [...dropped, ...kept].slice(0, panelStatCount);
-}
+const panelStats = faultCodeStats.slice(0, panelStatCount);
 
 /** `fault` 的条数由 `faultMessages` 推导，避免角标与列表长度不一致。 */
 const categories: readonly { count: number; id: EventCategory; label: string }[] = [
@@ -173,7 +167,6 @@ export function DeviceEventsPanel() {
     setInnerWidth(event.nativeEvent.layout.width - 32);
   const activeCategory = categories.find((item) => item.id === category);
 
-  const visibleStats = panelStats(excludedCodes);
   const visibleMessages =
     excludedCodes.length === 0
       ? faultMessages
@@ -254,7 +247,7 @@ export function DeviceEventsPanel() {
                * 两段字重的偏离集中在 `FaultCodePill` 里说明，「更多」面板用同一个
                * 组件的 `extraLarge` 档，保证两处格式一致。
                */}
-              {visibleStats.map((item) => (
+              {panelStats.map((item) => (
                 <FaultCodePill
                   checked={!excludedCodes.includes(item.code)}
                   code={item.code}
@@ -283,9 +276,9 @@ export function DeviceEventsPanel() {
               <EventChevronRight
                 accessibilityElementsHidden
                 color={colors.text.secondary}
-                height={tagMediumTokens.iconSize}
+                height={moreEntryTokens.iconSize}
                 importantForAccessibility="no-hide-descendants"
-                width={tagMediumTokens.iconSize}
+                width={moreEntryTokens.iconSize}
               />
             </Pressable>
           </View>
@@ -359,8 +352,11 @@ const eventColors = colors.deviceEvents;
 /** Figma 分类卡片 auto layout 间距，行列共用。 */
 const categoryGap = 9;
 
-/** 「更多」入口复用 Tag `size=medium` 的几何，避免在页面里另定一套标签尺寸。 */
-const tagMediumTokens = componentTokens.tag.sizes.medium;
+/**
+ * 「更多」入口的几何，取 Tag `size=medium`（24 高、8/2 内边距、14 图标、`Foot 12`），
+ * 与 Figma `20340:9118` 一致，也与同一行的统计胶囊等高。
+ */
+const moreEntryTokens = componentTokens.tag.sizes.medium;
 
 const styles = StyleSheet.create({
   panel: { gap: 16, padding: 16, borderRadius: 12, backgroundColor: colors.background.container },
@@ -392,16 +388,16 @@ const styles = StyleSheet.create({
   statTags: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   /** 「更多」入口容器，几何与 Tag `size=medium` + `shape=round` 一致。 */
   pill: {
-    minHeight: tagMediumTokens.minHeight,
+    minHeight: moreEntryTokens.minHeight,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: tagMediumTokens.paddingHorizontal,
-    paddingVertical: tagMediumTokens.paddingVertical,
+    paddingHorizontal: moreEntryTokens.paddingHorizontal,
+    paddingVertical: moreEntryTokens.paddingVertical,
     borderRadius: radiusTokens.tagRound,
     backgroundColor: colors.background.component,
   },
-  moreEntry: { gap: tagMediumTokens.contentGap },
+  moreEntry: { gap: moreEntryTokens.contentGap },
   moreLabel: { color: colors.text.secondary, textAlign: 'center', ...typographyTokens.footer12Regular },
 
   list: { gap: 8 },

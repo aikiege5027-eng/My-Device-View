@@ -5,9 +5,9 @@ import { colorThemes, componentTokens, radiusTokens, typographyTokens } from '@k
 
 /**
  * 对应 CheckTag 的尺寸档：`medium` 用在设备事件面板行（24 高），
- * `extraLarge` 用在「更多」面板的网格（40 高）。
+ * `large` 用在「更多」面板的网格（32 高）。
  */
-export type FaultCodePillSize = 'extraLarge' | 'medium';
+export type FaultCodePillSize = 'large' | 'medium';
 
 export type FaultCodePillProps = {
   accessibilityHint?: string;
@@ -24,9 +24,14 @@ export type FaultCodePillProps = {
  * 故障代码统计胶囊（兼筛选项）。
  *
  * 几何与配色严格对齐设计系统 CheckTag：尺寸取 `componentTokens.checkTag.sizes`，
- * 圆角取 `radiusTokens.tagRound`，未选中为 `bg-color-component` + `text-color-primary`，
- * 选中为 `brand-color-light` + `1` 品牌描边 + 品牌文字（后者是 Figma 页面实例对
- * CheckTag 的覆盖，组件本体的 `variant=light, checked=true` 并没有描边）。
+ * 圆角取 `radiusTokens.tagRound`，配色等价于 CheckTag 的 `variant=light`：
+ *
+ * - 未选中（`theme=default`）：`bg-color-component` + `text-color-primary`
+ * - 选中（`theme=primary`）：`brand-color-light` 淡蓝底 + `brand-color` 文字
+ *
+ * 两种状态都没有描边 —— 这正是 CheckTag 组件本体 `variant=light, checked=true` 的
+ * 定义（节点 `26841:11318`）；此前那圈品牌描边来自 Figma 页面实例的覆盖，已去掉。
+ * 无描边也意味着两种状态内边距完全相同，不需要补偿，高度不会跳变。
  *
  * 之所以没有直接用 `CheckTag` 组件：故障代码需要比次数更粗，而 CheckTag 的 `label`
  * 是单段字符串、排版整套绑定在 `size` 上，无法做两段字重。这是业务侧确认过的对
@@ -59,14 +64,7 @@ export function FaultCodePill({
           paddingHorizontal: tokens.paddingHorizontal,
           paddingVertical: tokens.paddingVertical,
         },
-        /** 描边占的 1 从内边距里扣掉，保证选中前后高度不跳变。 */
-        checked && {
-          paddingHorizontal: tokens.paddingHorizontal - borderWidth,
-          paddingVertical: tokens.paddingVertical - borderWidth,
-          borderWidth,
-          borderColor: colors.brand.default,
-          backgroundColor: colors.brand.light,
-        },
+        checked && styles.pillChecked,
         layoutStyle,
         pressed && styles.pressed,
       ]}
@@ -81,18 +79,18 @@ export function FaultCodePill({
 
 const colors = colorThemes.light;
 
-/** 与设计系统 Tag / CheckTag 的描边宽度一致。 */
-const borderWidth = componentTokens.tag.borderWidth;
-
-/** 故障代码比次数粗一档，两档尺寸各用对应的 Footer / Body 排版。 */
+/**
+ * 故障代码比次数粗一档。排版按 Tag 规范随尺寸切换：`large` 用 `Body 14/22`，
+ * `medium` 用 `Foot 12/20`。
+ */
 const typographyBySize = {
-  extraLarge: { code: typographyTokens.body14Semibold, count: typographyTokens.body14Regular },
+  large: { code: typographyTokens.body14Semibold, count: typographyTokens.body14Regular },
   medium: { code: typographyTokens.footer12Semibold, count: typographyTokens.footer12Regular },
 } as const;
 
 /** 视觉高度不等于触控热区；只在纵向扩展，避免压到相邻胶囊的间距。 */
 const hitSlopBySize = {
-  extraLarge: { bottom: 2, left: 0, right: 0, top: 2 },
+  large: { bottom: 6, left: 0, right: 0, top: 6 },
   medium: { bottom: 10, left: 0, right: 0, top: 10 },
 } as const;
 
@@ -104,6 +102,8 @@ const styles = StyleSheet.create({
     borderRadius: radiusTokens.tagRound,
     backgroundColor: colors.background.component,
   },
+  /** `variant=light, theme=primary`：品牌淡蓝底，无描边。 */
+  pillChecked: { backgroundColor: colors.brand.light },
   label: { color: colors.text.primary, textAlign: 'center' },
   labelChecked: { color: colors.text.brand, textAlign: 'center' },
   pressed: { opacity: 0.72 },

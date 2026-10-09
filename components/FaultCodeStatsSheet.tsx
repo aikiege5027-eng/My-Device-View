@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -16,7 +15,6 @@ import {
   BottomSheet,
   Button,
   Checkbox,
-  Link,
   colorThemes,
   typographyTokens,
 } from '@kone/mobile-design-system';
@@ -40,9 +38,12 @@ export type FaultCodeStatsSheetProps = {
 /**
  * 故障代码统计半屏面板，来自 Figma 节点 `20340:8827`（`picker` / `Popup` / `footer`）。
  *
- * 结构：顶部 `58` 高标题区（居中标题 + 右侧 `24×24` close-M）、`343` 宽的 CheckTag
- * 换行网格（每行 3 个、行列间距 `12`、单个 `40` 高）、底部 `80` 高双按钮操作区
- * （`重置` / `确认`，`large + round + block`，间距 `8`）。
+ * 结构：顶部 `58` 高标题区（居中标题 + 右侧 `24×24` close-M）、`343` 宽的标签换行
+ * 网格（每行 3 个、行列间距 `12`）、底部 `80` 高双按钮操作区（`重置` / `确认`，
+ * `large + round + block`，间距 `8`）。
+ *
+ * 网格标签取 CheckTag `size=large`（32 高）。Figma `20341:9147` 定义的是
+ * `extraLarge`（40 高），这里按业务要求收紧一档。
  *
  * 筛选采用排除语义：默认全部选中，取消某一项即把该故障代码从列表里排除。草稿记录
  * 的是「被取消的代码」，因此空集等于全选。
@@ -61,10 +62,6 @@ export function FaultCodeStatsSheet({
   const [draft, setDraft] = useState<readonly string[]>(excluded);
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
-
-  /** Web 预览没有真实安全区，按 Figma 的 iOS Home Indicator 高度模拟。 */
-  const bottomInset =
-    Platform.OS === 'web' && insets.bottom === 0 ? webBottomSafeArea : insets.bottom;
 
   /** 每次打开时用已生效的排除项重置草稿，避免上次未确认的改动残留。 */
   useEffect(() => {
@@ -119,8 +116,9 @@ export function FaultCodeStatsSheet({
            * 设置页的 `CompactSelectAll`，那个是为了塞进分割线刻意缩到 16 + `Foot 12`
            * + placeholder 色的页面专用控件。
            *
-           * 反选是纯动作、没有勾选态，所以用统一 `Link` 的 `primary` 主题，排版与全选
-           * 文案同为 `Body 14/22`，颜色用品牌色表达可点击。
+           * 反选是纯动作、没有勾选态，排版与颜色都对齐全选的文案（`Body 14/22` +
+           * `text-color-primary`）。没有用统一 `Link`，因为它只提供 `text-color-secondary`
+           * 与品牌色两档，取不到与全选文案一致的主文本色。
            */}
           <View style={styles.bulkRow}>
             <SelectAllCheckbox
@@ -128,9 +126,11 @@ export function FaultCodeStatsSheet({
               onToggle={() => setDraft(allSelected ? stats.map((item) => item.code) : [])}
               someSelected={someSelected}
             />
-            <Link
+            <Pressable
               accessibilityHint="把当前选中与未选中的故障代码互换"
+              accessibilityLabel="反选"
               accessibilityRole="button"
+              hitSlop={bulkHitSlop}
               onPress={() =>
                 setDraft((current) =>
                   stats
@@ -138,10 +138,9 @@ export function FaultCodeStatsSheet({
                     .map((item) => item.code),
                 )
               }
-              theme="primary"
             >
-              反选
-            </Link>
+              <Text style={styles.bulkActionLabel}>反选</Text>
+            </Pressable>
           </View>
 
           <View style={styles.gridRow}>
@@ -153,7 +152,7 @@ export function FaultCodeStatsSheet({
                 key={item.code}
                 layoutStyle={styles.tag}
                 onToggle={() => toggle(item.code)}
-                size="extraLarge"
+                size="large"
               />
             ))}
           </View>
@@ -164,7 +163,7 @@ export function FaultCodeStatsSheet({
          * Button 的 `block` 用的是 `alignSelf: 'stretch'`，在横向容器里只拉高度不拉宽度，
          * 所以等宽分配必须由父级 slot 承担 —— 与 PageTemplate 的 `actionSlot` 一致。
          */}
-        <View style={[styles.footer, { paddingBottom: footerPadding + bottomInset }]}>
+        <View style={[styles.footer, { paddingBottom: footerPadding + insets.bottom }]}>
           <View style={styles.actionSlot}>
             <Button block onPress={() => setDraft([])} shape="round" size="large" theme="light">
               重置
@@ -237,11 +236,26 @@ const closeIconSize = 24;
 /** 面板高度上限，沿用 Figma `650 / 812` 的占屏比例。 */
 const maxSheetRatio = 650 / 812;
 
-/** Figma `20340:8864`：footer 四边内边距，底部再叠加安全区。 */
+/** 标签网格的行列间距。Figma 为 `12`，按业务要求收紧到 `8`。 */
+const gridGap = 8;
+
+/** Figma `375` 基准下的内容宽度（375 - 左右各 16）。 */
+const gridContentWidth = 343;
+
+/** 3 列在基准内容宽度下的列宽上限：(343 - 2 × 8) / 3 = 109。 */
+const gridColumnMaxWidth = (gridContentWidth - gridGap * 2) / 3;
+
+/**
+ * Figma `20340:8864`：footer 四边内边距都是 16，整块高 `80`（16 + 48 + 16），
+ * 且底边正好落在 `812` 画布底部 —— 设计稿没有在 footer 下方再留 Home Indicator 条。
+ *
+ * 因此这里不模拟安全区，只在真实有安全区的设备上叠加 `insets.bottom`：
+ * Web 预览下 `insets.bottom` 为 0，footer 就是设计稿的 `80`。
+ */
 const footerPadding = 16;
 
-/** Web 预览的 Home Indicator 高度，与 Figma iOS 基准一致。 */
-const webBottomSafeArea = 34;
+/** 文案视觉高度 22，用 hitSlop 补足触控热区且不改变布局，与 Link 的做法一致。 */
+const bulkHitSlop = { bottom: 11, left: 8, right: 8, top: 11 };
 
 const styles = StyleSheet.create({
   popup: {
@@ -273,17 +287,27 @@ const styles = StyleSheet.create({
   },
   grid: { flexGrow: 0, flexShrink: 1 },
   gridContent: { gap: 12, paddingTop: 36, paddingBottom: 16, paddingHorizontal: 16 },
-  /** 批量操作行，与下方网格保持 12 的行间距；两个入口左对齐成一组。 */
+  /** 批量操作行，与下方网格保持 12 的间距；两个入口左对齐成一组。 */
   bulkRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
-  gridRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-start', gap: 12 },
+  /** 与全选文案完全一致：`Body 14/22 Regular` + 主文本色。 */
+  bulkActionLabel: { color: colors.text.primary, ...typographyTokens.body14Regular },
+  gridRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-start', gap: gridGap },
   /**
-   * Figma `20341:9147`：`flex-[1_0_0]` + `min-w-88` + `max-w-106`。
-   * `flexBasis` 取最小宽度，让 `343` 的内容宽度在 `12` 间距下稳定排 3 列
-   * （3 × 88 + 2 × 12 = 288 ≤ 343），再由 `flexGrow` 补到上限 `106`
-   * （3 × 106 + 2 × 12 = 342）。不按 `106` 写死宽度，窄屏时自然收缩。
+   * 沿用 Figma `20341:9147` 的 `flex-[1_0_0]` + `min-width` / `max-width` 思路：
+   * `flexBasis` 取最小宽度，保证 `343` 的内容宽度下稳定排 3 列
+   * （3 × 88 + 2 × 8 = 280 ≤ 343），再由 `flexGrow` 补到列宽上限。
+   *
+   * 上限按当前间距重算（Figma 的 `106` 是对应 `12` 间距的值），这样 3 列在基准宽度下
+   * 正好铺满、右侧不留参差；项数不是 3 的倍数时，末行也不会被拉宽。
    */
-  tag: { flexBasis: 88, flexGrow: 1, flexShrink: 0, maxWidth: 106, minWidth: 88 },
-  /** Figma `20340:8864`：p16、双按钮等宽、间距 8；底部内边距额外叠加安全区。 */
+  tag: {
+    flexBasis: 88,
+    flexGrow: 1,
+    flexShrink: 0,
+    maxWidth: gridColumnMaxWidth,
+    minWidth: 88,
+  },
+  /** Figma `20340:8864`：p16、双按钮等宽、间距 8；底部内边距只在有安全区时叠加。 */
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
