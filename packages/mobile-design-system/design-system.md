@@ -18,16 +18,20 @@
 | 图标 Icon | [Design Token China · Icon](https://www.figma.com/design/vuD3onrb6PS5UtMrGdgbrA/Design-Token-China?node-id=2371-26&t=HO0LwfnZeh3k3axW-1) | `2371:26` | 以 Figma 节点当前发布定义为准 |
 | 按钮 Button | [China Design System for Mobile · Button](https://www.figma.com/design/EwHKttY9aJIOS7TM3RqGoW/China-Design-system-for-mobile?node-id=24317-5233) | `24317:5233` | 以 Figma 节点当前发布定义为准 |
 | 多选框 Checkbox | [China Design System for Mobile · Checkbox](https://www.figma.com/design/EwHKttY9aJIOS7TM3RqGoW/China-Design-system-for-mobile?node-id=24386-5247) | `24386:5247` | 以 Figma 节点当前发布定义为准，读取于 2026-09-04 |
+| 悬浮按钮 Fab | [China Design System for Mobile · Fab](https://www.figma.com/design/EwHKttY9aJIOS7TM3RqGoW/China-Design-system-for-mobile?node-id=24385-5234) | 规范页 `24385:5234`、组件集 `26616:6104` | 当前包含 64 个变体（`size` × `theme` × `shape` × `text`），读取于 2026-10-10；项目实现见 `src/components/Fab.tsx` |
 | 选择器 Picker | [China Design System for Mobile · Picker](https://www.figma.com/design/EwHKttY9aJIOS7TM3RqGoW/China-Design-system-for-mobile?node-id=24386-5250) | `24386:5250` | 当前包含 1–4 列及有/无标题共 8 个变体，读取于 2026-09-04；项目实现见 `src/components/Picker.tsx` |
 | 动作面板 ActionSheet | [China Design System for Mobile · ActionSheet](https://www.figma.com/design/EwHKttY9aJIOS7TM3RqGoW/China-Design-system-for-mobile?node-id=24386-5277) | 规范页 `24386:5277`、组件集 `27454:30291`、`item/action-cell` `27454:29041`、`item/action-des` `27454:29431` | 当前包含 64 个变体（`align` × `cancel` × `description` × `item` × `theme`），读取于 2026-10-09；项目实现见 `src/components/ActionSheet.tsx` |
 | 时间选择器 DateTimePicker | [China Design System for Mobile · DateTimePicker](https://www.figma.com/design/EwHKttY9aJIOS7TM3RqGoW/China-Design-system-for-mobile?node-id=24386-5248) | 规范页 `24386:5248`、组件集 `27227:19113`、`item/datetime-option` `27227:18734` | 当前包含 10 个 `mode` × 有/无标题共 20 个变体，读取于 2026-10-09；项目实现见 `src/components/DateTimePicker.tsx` |
 | 级联选择器 Cascader | [China Design System for Mobile · Cascader](https://www.figma.com/design/EwHKttY9aJIOS7TM3RqGoW/China-Design-system-for-mobile?node-id=24386-5246) | 规范页 `24386:5246`、组件集 `27500:27380` | 当前包含 32 个变体（`theme` × `step` × `subtitle` × `close-btn`），读取于 2026-10-09；项目实现见 `src/components/Cascader.tsx` |
 | 日历 Calendar | [China Design System for Mobile · Calendar](https://www.figma.com/design/EwHKttY9aJIOS7TM3RqGoW/China-Design-system-for-mobile?node-id=24386-5262) | 规范页 `24386:5262`、组件集 `27213:17690`、`item/date` `27205:14790` | 当前包含 18 个变体（`type` × `format` × `timePicker`）与 38 个 `item/date` 状态组合，读取于 2026-10-09；项目实现见 `src/components/Calendar.tsx` |
 | 标签 Tag | [China Design System for Mobile · Tag](https://www.figma.com/design/EwHKttY9aJIOS7TM3RqGoW/China-Design-system-for-mobile?node-id=24386-5275) | `24386:5275` | 以 Figma 节点当前发布定义为准，读取于 2026-09-04 |
+| 输入框 Input | [China Design System for Mobile · Input](https://www.figma.com/design/EwHKttY9aJIOS7TM3RqGoW/China-Design-system-for-mobile?node-id=24386-5249) | 规范页 `24386:5249`、`Extension 特殊样式`（标签外置输入框）组件集 `21293:905` | 本包尚未实现 Input 组件。当前只读取了 `Extension` 无标签/无图标/无单位一列的 `state=Default`（`21305:786`）与 `state=action` / `state=fill`（`21305:792` / `21305:800`），读取于 2026-10-10：静置态为 `1` 的 `component-border` 描边；激活态为 `1.5` 的 `brand-color` 描边 + `Light/Shadow/1`（`0 2 5 rgba(0,0,0,0.1)`）+ 品牌色输入线（即文本光标）。其余变体、尺寸档与 `Finish` / `error` 状态尚未读取。页面侧实现见消费项目 `components/FaultMessageFilterView.tsx` |
+| 侧边栏 SideBar | [China Design System for Mobile · SideBar](https://www.figma.com/design/EwHKttY9aJIOS7TM3RqGoW/China-Design-system-for-mobile?node-id=24787-18812) | 规范页 `24787:18812`、组件集 `27264:20884`、`item/line` `24787:18927`、`item/tag` `27264:20748` | 主组件集 4 个变体（`theme` × `icon`），两个 item 组件集各 12 个变体（`select` × `badge` × `icon` × `disable`），读取于 2026-10-10；项目实现见 `src/components/SideBar.tsx` |
 | 折叠面板 Collapse | [China Design System for Mobile · Collapse](https://www.figma.com/design/EwHKttY9aJIOS7TM3RqGoW/China-Design-system-for-mobile?node-id=24386-5265) | `24386:5265` | 当前包含 Collapse 16 个变体与 CollapseGroup 8 个变体，读取于 2026-09-09；项目实现见 `src/components/Collapse.tsx` |
 | 弹窗 Dialog | [China Design System for Mobile · Dialog](https://www.figma.com/design/EwHKttY9aJIOS7TM3RqGoW/China-Design-system-for-mobile?node-id=24386-5278) | `24386:5278` | 以 Figma 节点当前发布定义为准 |
 | 分割线 Divider | [China Design System for Mobile · Divider](https://www.figma.com/design/EwHKttY9aJIOS7TM3RqGoW/China-Design-system-for-mobile?node-id=24385-5233) | 规范页 `24385:5233`、组件集 `26625:6299`、用例说明 `24387:5960` | 当前包含 10 个变体（`dashed` × `layout` × `align` × `content`），读取于 2026-09-10；项目实现见 `src/components/Divider.tsx` |
 | 步骤条 Steps | [China Design System for Mobile · Steps](https://www.figma.com/design/EwHKttY9aJIOS7TM3RqGoW/China-Design-system-for-mobile?node-id=24386-5241) | `24386:5241` | 以 Figma 节点当前发布定义为准 |
+| 进度条 Progress | [China Design System for Mobile · Progress](https://www.figma.com/design/EwHKttY9aJIOS7TM3RqGoW/China-Design-system-for-mobile?node-id=24386-5271) | 规范页 `24386:5271`、组件集 `27306:20607` | 当前包含 40 个变体（`theme` × `status` × `label`），读取于 2026-10-10；项目实现见 `src/components/Progress.tsx`，仅开放 `theme=line` |
 | 页面模板 Page Template | [My Device View · Page Temple](https://www.figma.com/design/HKQhWrp0DNySYHyfHRNMZ8/My-Device-View?node-id=20107-7271&t=UWZ88wXpC4izkJcg-1) | `20107:7271` | 当前包含 4 个移动端操作区模板，读取于 2026-09-04 |
 | 筛选 Filter | [客户直通车 myKONE Mobile · 筛选触发项](https://www.figma.com/design/KtLWOchDRkeG5rEx7kCkLe/%E5%AE%A2%E6%88%B7%E7%9B%B4%E9%80%9A%E8%BD%A6myKONE-Mobile?node-id=1306-32232) | 触发项实例 `1306:32232`、主组件 `477:12232`、筛选行 `1306:32231` | 当前仅定义单一形态（选中值文案 + `caret-down-small`），无 variant 轴；读取于 2026-09-04；项目实现见 `src/components/FilterBar.tsx` |
 
@@ -378,6 +382,7 @@ Figma file keys：
 - 选中值为受控 `PickerValue`，按稳定 column id 索引而非数组下标；`onChange` 在吸附完成后触发，`onConfirm` 提交当前受控值，组件自身不持久化业务值。
 - 滚轮用 `ScrollView` + `snapToInterval={40}` 实现，上下留白 `(184 - 40) / 2 = 72`，使首末项可进入中央选择位置。indicator 使用面板绝对 `y=130` token：常规 7 个变体与中央 option 对齐，`4 columns + title=false` 保留 Figma 当前 `2` 偏差。渐隐 mask 用 `react-native-svg` 渐变绘制，未引入新依赖。
 - 吸附落到 `empty` 位置时回落到最近的可选项；这是"empty 不可选"的必要推论，不是新增视觉状态。
+- 选中值在触摸结束（`onScrollEndDrag` / `onMomentumScrollEnd`）时提交。Web 的鼠标滚轮与 trackpad 不产生这两个事件，因此 `WheelPanel` 另有一层「滚动静止后兜底 settle」：仅在非触摸滚动时生效，触摸期间不参与，避免与手势抢 `scrollTo`。这是实现层为跨平台一致性补的逻辑，不改变任何 Figma 定义的视觉尺寸。
 - 已知设计缺口，扩展前必须先回到 Figma 核实：Link 的 press/hover/disabled/underline/图标槽与其余尺寸尚未读取，故组件未开放；Picker 的遮罩、弹出动画、点击遮罩关闭、系统返回、安全区、disabled / loading / error 与异步 Confirm 同样未定义，须由宿主层按已确认设计实现。
 - Link 的触控热区用 `hitSlop` 扩展到约 `44`，不改变 `22` 的视觉高度与相邻间距；这是可访问性要求，不改动 Figma 视觉尺寸。
 
@@ -428,6 +433,7 @@ Figma file keys：
 - `CheckTag` 的 `variant=light, checked=true` 按组件本体定义**不带描边**（节点 `26841:11318`）。若目标页面的实例在选中态额外加了品牌描边，应由调用方按选中态切换 `variant`（`lightOutline` / `light`）复现该实例覆盖，而不是改动组件的配色矩阵。
 - `uncheckedBorder` 来自页面组合需要，Figma 未定义对应轴；扩展前请先回到 Figma 核实。
 - `Tag` 的 `label` 是单段字符串，排版整套绑定在 `size` 上。需要「同一标签内两种字重」或「非 Tag 色板的前景色」时，Tag / CheckTag 无法表达，应先回到 Figma 补对应轴，或在页面侧按 Tag 的几何 token 实现并显式登记偏离。
+- 已登记的前景色偏离：消费项目 `components/FaultMessageFilterView.tsx` 的故障代码胶囊与「更多」入口，几何与底色取 `size=large` + `theme=default` + `variant=light`，但文案与图标用 `text-color-secondary`。`theme=default` 只定义了常态 `text-color-primary` 与 disabled `text-color-disabled` 两档，拿不到中间档，因此在页面侧按几何 token 实现。待 Figma 为 Tag 补充前景色轴后回收。
 
 ### Figma 读取与实现流程
 
@@ -558,6 +564,26 @@ Figma file keys：
 3. 将字体、颜色、图标、按钮和输入框映射到项目已有设计 token 与组件。
 4. 实现长内容、键盘、异步操作和关闭路径，不添加 Figma 未定义的视觉变体。
 5. 对照 Figma 验证尺寸、布局、图片位置、按钮主题和所有启用状态，并完成可访问性检查。
+
+### 项目实现现状
+
+包内实现为 `src/components/Dialog.tsx`。`item/footer` 组件集（节点 `27360:21896`）共 9 个变体，当前只开放已读取确认的两个：
+
+| footer 变体 | Figma 节点 | 代码已实现 |
+| --- | --- | --- |
+| `confirm-btn=true, cancel-btn=true, button-layout=vertical, button-theme=base` | `27360:21892` | 已实现 |
+| `confirm-btn=true, cancel-btn=false, button-theme=base` | `27360:21891` | 已实现 |
+| `button-layout=horizontal`、仅 `cancel-btn=true`、`button-theme=text`、两个按钮都隐藏 | `27360:21894` / `27360:21889` / `27360:21890` 等 | 未实现 |
+
+- 单按钮变体 footer 高 `88`（`24` 内边距 + `40` 按钮 + `24` 内边距），按钮占满内容宽度，Figma 中没有 `button-layout` 轴。
+- 两个已实现变体用判别联合区分：双按钮必须同时提供 `buttonLayout: 'vertical'`、`cancel` 与 `confirm`；单按钮只提供 `confirm`，类型上不接受 `buttonLayout` 和 `cancel`。
+- `description` 对应 Figma 的 `content` 轴。传字符串时按 `H7 16/Regular` + `text-color-secondary` 居中渲染；也接受节点，用于正文本身是组合内容的场景（如进度条 + 状态行），两种形式都落在标题下方 `8` 间距的内容流里。`children` 另走独立的正文滚动区（上下内边距各 `24`），两者用途不同不要混用。
+- Dialog 组件节点的每个变体都带 footer，由 footer 的 `24` 内边距提供卡片下留白。既没有 footer 也没有 `children` 的卡片（如远程呼梯进程页 `19721:216005` 的 `py-32`）在该节点中没有对应变体，实现让 header 补一个与顶部对称的下内边距：带关闭按钮时 `24`，不带时 `32`（此时顶部也取 `32`）。
+- 关闭按钮是独立的 `close` 轴，不影响内容区内边距：带 footer 的变体无论有没有关闭按钮，内容区顶部内边距都是 `24`（无关闭按钮且正文独立滚动的变体见节点 `27360:22420`）。上一条的 `32` 只属于「无 footer 且无 `children`」的孤立卡片。
+- `children` 的正文滚动区按长内容变体（节点 `27360:22420`）的 `scrollbar` 自绘滚动指示条：宽 `4`、圆角 `2`、`component-border` 50% 透明度、距卡片右边缘 `16`，并关掉平台自带的滚动条避免两条叠加。Figma 给的 `64` 长度是该示例内容量下的静态结果，实现按「可视高度 / 内容高度」等比计算并约定一个下限；指示条是纯装饰，从无障碍树中隐藏且不吃触摸事件。
+- `contentBehavior=fit` 的卡片贴合内容，最大高度取该长内容变体节点自身的 `400`，超出后只滚动正文区；`contentBehavior=scroll` 仍为固定 `540`（`components/DeviceDynamicsDialog.tsx` 在用）。`400` 的上限覆盖了卡片的 `86%` 视口保护，因此假定视口高度大于 `400`。
+- `visible` 转 false 后 `Modal` 还有 250ms 淡出。调用方普遍把「显示哪份内容」和 `visible` 绑在同一份状态上，因此组件会锁存最后一次可见时的内容（title / description / children / footer / close 按钮）并在淡出期间继续渲染，避免淡出播放的是一张被清空的空白卡片。
+- `input` 与 `image` 两个轴尚未实现；扩展前必须先回到 Figma 核实。
 
 ## Divider
 
@@ -883,6 +909,192 @@ Figma file keys：
 - `timePicker` 复用 `src/components/internal/WheelPanel.tsx`，只覆写 `contentHeight=104`、`maskHeight=32`、`indicatorTop=90`、`showActions=false`、`roundedTop=false`。分钟步进在 Figma 中没有定义，默认逐分钟并可由调用方覆盖。
 - `firstDayOfWeek` 默认 `0`（周日起，与 Figma 当前定义一致），可切到周一起；切换时 `weekdayLabels` 的顺序必须由调用方同步调整。
 - 已知设计缺口，扩展前必须先回到 Figma 核实：格子的按压 / hover 态、`select` 与 `now` / `disabled` 的组合、月份切换入口、确认按钮的禁用 / loading 态、`timePicker` 的分钟步进与可选时间范围，以及面板的遮罩与动效。
+
+## Progress
+
+### 当前结构摘要
+
+- 权威入口为规范页 `24386:5271`，组件集为 `27306:20607`，共 40 个已发布变体：`theme`（`line` / `plump` / `circle` / `micro` / `button`）× `status`（`active` / `success` / `warning` / `error`）× `label`（`true` / `false`）。
+- 规范页按类型划分为 `Line 线性进度条`、`Plump 百分比内显`、`Circle 环形进度条`、`Micro Circle 微型环形进度条`、`Button 按钮进度`、`Micro Button 微型按钮进度`，状态区按 `Primary` / `Warning` / `Danger` / `Success` 四组展示。
+- 四个 `status` 统一映射到 `Color/brand/brand-color`、`Color/success/success-color`、`Color/warning/warning-color`、`Color/error/error-color`；轨道底色统一为 `Color/grey/component-stroke`。轨道与填充都是胶囊圆角。
+- `theme=line`：轨道与填充高 `6`。`label=false` 时整体高 `6`；`label=true` 时整体高 `22`，轨道与右侧内容的 auto layout 间距为 `8`，右侧槽固定宽 `36`。`status=active` 的右侧是 `Body 14/Regular` + `text/text-color-primary` 的右对齐百分比文案；`success` / `warning` / `error` 的右侧是 `36×22` 居中图标槽，内含 `20` 的 `check-circle-filled` / `warning-circle-filled` / `close-circle-filled`，图标取对应状态色。
+- `theme=plump`：整体高 `20`，百分比文案内显在填充条右端内侧 `8`，使用 `Foot 12/Semibold` + `text/text-color-white`。进度过低时节点另有 `progress<10%` 形态把文案移到填充条外侧并改为深色；该形态只给了示意，没有给出触发阈值，且 mock 里的填充色是未绑定变量的裸值 `#0052d9`。
+- `theme=circle` 基准 `112×112`，`theme=micro` 基准 `24×24`，两者在节点中以整段矢量导出，没有拆出半径、线宽与起始角等参数。
+- `theme=button` 基准 `343×48`、圆角 `radius/radius-medium`，底色直接取状态色，`label=true` 时居中显示 `H7 16/Semibold` 白色文案或 `24` 的 `check` / `warning` / `close-M` 图标。
+- 节点中的 `343` 是展示基准宽度，`pr-[64px]` 一类的右内边距是 mock 用来画出 80% 的手段，不是 token。
+- 该节点只定义静态进度形态，没有定义进度推进的动效时长与曲线、不确定进度（indeterminate）、进度回退，也没有定义 `button` 形态的点击与禁用行为。
+
+### 组件规则
+
+- IMPORTANT：项目中的进度表达必须复用统一 Progress 及 Figma 已定义的 theme、status 和 label 组合，不得在业务页面自行拼轨道、填充条和百分比文案。
+- IMPORTANT：实现前使用 file key `EwHKttY9aJIOS7TM3RqGoW` 和节点 `24386:5271` 读取最新定义；本摘要不能替代 Figma 中的尺寸、排版、颜色和图标。
+- 组件 API 应围绕 `theme`、`status`、`label` 和百分比值建模，并阻止 Figma 未定义的组合。
+- 百分比必须由调用方受控传入并收敛到 `0–100`；组件不得自行推进进度、不得在内部保存业务进度值。
+- 四个 status 必须成套使用对应语义色，`label=true` 的非 active 状态必须使用对应状态图标；不得用 opacity 或自定义色推导状态。
+- `343` 是展示基准宽度，实现应填满父容器可用宽度；不得把 `343` 或 mock 的右内边距写进组件样式。
+- 轨道需裁剪填充条溢出，保证填充条在 `0%` 与 `100%` 两端都与胶囊圆角贴合。
+- 未在该节点定义的动效、indeterminate 形态与 `button` 形态的交互不得自行补值，需要时先读取对应设计或补充设计系统定义。
+
+### 可访问性与交互
+
+- Progress 应暴露为进度语义并提供最小值、最大值与当前值，使辅助技术能朗读完成度。
+- `label=false` 没有可读文案，必须由调用方提供可访问名称；`label=true` 的百分比文案已可读，不应再重复朗读。
+- 状态图标属于装饰元素，必须从无障碍树中隐藏；状态差异不得仅依赖颜色，应结合图标或上下文文案表达。
+- 进度条本身不是可交互控件，不得暴露为按钮；`theme=button` 若承载点击，交互语义应由承载它的 Button 负责。
+- 放在对话框中表示阻塞性操作时，宿主需负责「进行中不可关闭」等约束；Progress 不代为管理。
+
+### React Native / Expo 实现约束
+
+- 轨道与填充条用普通 `View` + 百分比宽度实现，尺寸与间距从 `componentTokens.progress` 读取，颜色与排版只引用语义 token。
+- 轨道设置 `overflow: 'hidden'` 并与填充条共用胶囊圆角，避免 `0%` / `100%` 两端出现方角或溢出。
+- 状态图标复用包内 `src/icons.tsx` 的 `CheckCircleFilledIcon` / `WarningCircleFilledIcon` / `CloseCircleFilledIcon`，通过 `currentColor` 继承状态色。
+- 百分比文案与图标槽固定宽 `36` 且不参与收缩，轨道用 `flex: 1` + `minWidth: 0` 吸收剩余宽度。
+
+### Figma 读取与实现流程
+
+1. 使用 file key `EwHKttY9aJIOS7TM3RqGoW` 和节点 `24386:5271` 获取 Progress 最新结构、变量与截图；必要时继续读取组件集 `27306:20607`。
+2. 确认 theme、status、是否显示 label，以及百分比的数据来源。
+3. 将轨道高度、间距、右侧槽宽、排版、状态色与状态图标映射到项目已有 token 与包内图标；缺失定义时先回到 Figma 核实。
+4. 由调用方受控百分比，并为 `label=false` 的场景提供可访问名称。
+5. 对照 Figma 验证 `6` 轨道高、`22` 带 label 行高、`8` 间距、`36` 右侧槽宽、四种状态色与图标，以及 `0%` / `100%` 两端的圆角表现。
+
+### 项目实现现状
+
+包内实现为 `src/components/Progress.tsx`。Figma 组件集共 40 个变体，当前代码只覆盖已读取确认的子集：
+
+| 轴 | Figma 定义 | 代码已实现 |
+| --- | --- | --- |
+| `theme` | line / plump / circle / micro / button | 仅 `line` |
+| `status` | active / success / warning / error | 全部 |
+| `label` | true / false | 全部 |
+
+- `theme=plump` 未开放：`progress<10%` 形态缺少触发阈值定义，且 mock 中混入了未绑定变量的裸色值 `#0052d9`，开放前必须先回到 Figma 核实。
+- `theme=circle` / `micro` 未开放：节点以整段矢量导出，没有给出半径、线宽与起始角，无法在不臆造参数的情况下用 `react-native-svg` 还原。
+- `theme=button` 未开放：需要先确认它与统一 Button 的关系（是 Button 的一种状态还是独立组件）以及点击 / 禁用行为。
+- `close-circle-filled` 在该节点的实例带有 `0.9` 图层不透明度，但该值未绑定变量、项目既有同名资产也是满不透明度，因此按状态色满不透明渲染。
+- 已知设计缺口，扩展前必须先回到 Figma 核实：进度推进的动效时长与曲线、indeterminate 形态、进度回退表现。
+
+## Fab
+
+### 当前结构摘要
+
+- 权威入口为规范页 `24385:5234`，组件集为 `26616:6104`，共 64 个已发布变体：`size`（`large` / `medium` / `small` / `extraSmall`）× `theme`（`primary` / `light` / `default` / `danger`）× `shape`（`circle` / `square` / `round` / `rectangle`）× `text`（`false` / `true`）。
+- 规范页按用途划分为 `Icon Fab 纯图标悬浮按钮` 与 `Icon Fab with Text 图标加文字悬浮按钮` 两种类型，另有 `Fab Theme` / `Fab Shape` / `Fab Size` 三组轴示意。
+- `shape` 与 `text` 严格配对：`text=false` 只用 `circle`（`radius/radius-circle`）或 `square`（`radius/radius-medium`）；`text=true` 只用 `round`（`radius/radius-circle`）或 `rectangle`（`radius/radius-medium`）。两组形状不得混用。
+- 所有变体都有图标，`text=true` 时为「图标 + 文案」，auto layout 间距 `4`，内容双向居中。Figma 中的 `add` 是可替换实例，属于内容而不是组件本身。
+- `text=false` 为固定边长的方形盒子：`large` `48`、`medium` `40`、`small` `32`、`extraSmall` `28`，图标分别为 `24` / `20` / `18` / `18`。`small` 与 `extraSmall` 的节点上仍留着 `10` 内边距，加上 `18` 图标会超过固定边长，被 `overflow-clip` 和居中对齐抵消，因此实现只需固定边长 + 居中，不要再叠加该内边距。
+- `text=true` 的高度由内边距与行高得出：`large` 内边距 `20/12` + 行高 `24` = `48`；`medium` `16/8` + `24` = `40`；`small` `12/5` + `22` = `32`；`extraSmall` `8/3` + `22` = `28`。
+- 排版随尺寸切换，与 Button 一致：`large` / `medium` 用 `H7 16/Semibold`，`small` / `extraSmall` 用 `Body 14/Medium`。
+- 底色按主题取 `Color/brand/brand-color`（primary）、`Color/brand/brand-color-light`（light）、`Color/grey/component-stroke`（default）、`Color/error/error-color`（danger）。前景（图标与文案同色）取 `text/text-color-white`（primary、danger）、`text/text-color-brand`（light）、`text/text-color-primary`（default）。
+- 64 个变体共用同一组阴影 `Light/Shadow/2`：`0 4 10 rgba(0,0,0,0.1)`，spread `0`。
+- 该节点只定义按钮本体，没有定义按压态、hover 态、禁用态、loading 态，也没有定义按钮在页面中的吸附位置、与底部操作区 / 标签栏的避让关系、展开型 Fab 菜单或拖拽行为。
+
+### 组件规则
+
+- IMPORTANT：项目中的悬浮按钮必须复用统一 Fab 及 Figma 已定义的 size、theme、shape 和内容组合，不得在业务页面自行拼出圆形按钮、阴影和图标槽。
+- IMPORTANT：实现前使用 file key `EwHKttY9aJIOS7TM3RqGoW` 和节点 `24385:5234` 读取最新定义；本摘要不能替代 Figma 中的尺寸、内边距、圆角、排版、颜色和阴影 token。
+- 组件 API 应围绕 `size`、`theme`、`shape`、图标槽和可选文案建模，并以类型约束把 `circle` / `square` 绑定到纯图标形态、`round` / `rectangle` 绑定到带文案形态。
+- 纯图标形态没有可读文字，必须由调用方显式提供可访问名称；不得依赖图形本身传达操作。
+- 四档尺寸的几何必须按 Figma 分别取值，不得通过整体缩放或临时改字号派生；排版必须随尺寸成套切换，不得固定为单一 token。
+- 底色、前景色与圆角必须使用语义 token；阴影必须复用集中式 Fab 阴影 token，不得在业务页面另写一组 shadow 参数。
+- 图标必须来自 Icon 规范并保持设计中的方向、outline/filled 与比例；图标颜色必须跟随当前主题前景色，不得写死黑白。
+- Figma 未定义按压、禁用和 loading 状态，这些状态不得自行补值。需要防重复提交或异步反馈时应先读取对应设计或补充设计系统定义。
+- Fab 在页面中的位置不属于组件职责。吸附边距、与底部标签栏 / 按钮操作区和安全区的避让由页面布局负责，组件不得内置绝对定位。
+- `small` 与 `extraSmall` 的 `32` / `28` 小于 44 的推荐触控尺寸。该尺寸由 Figma 指定，组件不自行加 `hitSlop`；放在密集布局中时调用方需自行评估热区。
+
+### 可访问性与交互
+
+- Fab 必须暴露为按钮角色并提供明确、可读的名称；纯图标形态的名称由调用方提供，带文案形态默认取文案。
+- 图标属于装饰元素，必须从无障碍树中隐藏，避免与按钮名称重复朗读。
+- Fab 浮在内容之上，不得遮挡列表最后一项、键盘或系统手势区域；页面应为其预留底部留白。
+- Fab 在阅读顺序中的位置应可预期，不得因绝对定位让辅助技术跳过页面主内容或重复朗读。
+- 主题差异不得仅依赖颜色表达语义，`danger` 等破坏性操作应在名称或确认流程中说明后果。
+- 动态字体下带文案形态应保持文案完整可读；长文案的截断或换行方案 Figma 未定义，需要时先向用户确认。
+
+### React Native / Expo 实现约束
+
+- 使用单一 `Pressable` 渲染所有合法组合；不要为四档尺寸、四种主题或两种形态复制 JSX。
+- 尺寸、内边距、图标槽、圆角与阴影从 `componentTokens.fab` 读取，颜色与排版只引用语义 token。
+- 阴影用 `shadowColor` / `shadowOffset` / `shadowOpacity` / `shadowRadius` 表达，并提供 `elevation` 作为 Android 近似；两端取值都来自同一组 token。
+- 图标槽通过接收当前主题前景色与该尺寸图标槽尺寸的 render prop 提供，避免调用方重复维护「主题 → 前景色」和「尺寸 → 图标尺寸」两张映射表。
+- 纯图标形态使用固定宽高 + 内容居中，不要叠加 Figma 在 `small` / `extraSmall` 上残留的 `10` 内边距。
+- 页面侧用绝对定位把 Fab 放到目标位置，并把底部偏移叠加到安全区之上；不得把该偏移写进组件样式。
+
+### Figma 读取与实现流程
+
+1. 使用 file key `EwHKttY9aJIOS7TM3RqGoW` 和节点 `24385:5234` 获取 Fab 最新结构、变量与截图；必要时继续读取组件集 `26616:6104`。
+2. 确认 `size`、`theme`、是否带文案及对应 `shape`，并排除 `circle` + 文案、`round` + 纯图标等无效组合。
+3. 确认图标来源与可访问名称，以及该页面是否存在底部标签栏、按钮操作区或键盘需要避让。
+4. 将尺寸、内边距、排版、颜色、圆角和阴影映射到项目已有 token 与图标资产；缺失定义时先回到 Figma 核实，不得自行补值。
+5. 对照 Figma 验证四档尺寸、四种主题、两组形状、图标与文案间距、阴影，以及触控热区与无障碍名称。
+
+### 项目实现现状
+
+- 统一实现为 `src/components/Fab.tsx`，尺寸与阴影来自 `componentTokens.fab`。四个轴的 64 个组合均已实现。
+- 内容与形状已用判别联合绑定：纯图标形态只接受 `circle` / `square` 且强制要求 `accessibilityLabel`，带文案形态只接受 `round` / `rectangle`。
+- 已知设计缺口，扩展前必须先回到 Figma 核实：按压 / hover / 禁用 / loading 态、页面吸附位置与避让规则、展开型 Fab 菜单、拖拽，以及带文案形态的长文案方案。
+
+## SideBar
+
+### 当前结构摘要
+
+- 权威入口为规范页 `24787:18812`，主组件集为 `27264:20884`，行组件集为 `item/line` `24787:18927` 与 `item/tag` `27264:20748`。
+- 主组件集有 `theme`（`line` / `tag`）和 `icon`（`false` / `true`）两个轴，共 4 个变体。两个 item 组件集各有 `select` × `badge` × `icon` × `disable` 四个轴、各 12 个已发布变体——`select=true` 不与 `disable=true` 组合，因此选中态没有禁用形态。
+- 规范页按用途划分为 `Basic SideBar 基础侧边栏`、`SideBar with Icon 带图标侧边栏`、`SideBar with Badge 带徽标侧边栏` 三种类型，`SideBar Tag Theme 选项卡标签样式` 一种样式，以及 `Default` / `Select` / `Disable` 三种状态。
+- 容器为纵向 auto layout，基准宽 `103`，底色 `Color/grey/bg-color-component`，`overflow-clip`。组件集中的 `667` 是 `375×667` 展示画布的高度，不是容器固定高度；行之间没有 gap。
+- 两种 theme 的行基准高度都是 `56`。`item/line` 为 `16` 行内边距 + `24` 行高；`item/tag` 为外层 `8` 内边距套内层 `8` 内边距，内层 tag 高 `40`、圆角 `radius/radius-medium`。
+- 文案统一 `16`：未选中为 `H7 16/Regular` + `text/text-color-primary`，选中为 `H7 16/Semibold` + `Color/brand/brand-color`，禁用为 `H7 16/Regular` + `text/text-color-disabled`。`icon=true` 时 `20×20` 图标槽与文案间距 `2`，图标颜色随同一套状态前景色变化。
+- `theme=line` 的选中行底色为 `Color/grey/bg-color-container`，并在左边缘垂直居中叠一条 `3×14` 的品牌色胶囊指示条；`theme=tag` 的选中行只有内缩的白色圆角 tag，没有指示条。
+- `theme=line` 的选中行另有 `suffix` / `prefix` 两个 `9×9` 的白色反向圆角缺口，位于行右边缘的上方和下方（`left=94`、`top=-9` 与 `top=56`），作用是把侧边栏底色在选中块上下切出 `9` 的圆角，使白色选中块与右侧内容面板连成一片。因此该 theme 假定侧边栏右侧紧贴 `bg-color-container` 的内容面板。
+- `badge=true` 时在文案尾端的 `0` 尺寸锚点上叠一个 `8` 直径的 `Color/error/error-color` 圆点，Figma 为 `left:calc(50%+4)` / `top:calc(50%-8)` 搭配 `-translate-1/2`，在 0 尺寸锚点上折算为 `0 / -12`。
+- 该节点只定义分类列本身，未定义右侧内容区、按压 / hover 态、分类数量超出可视高度后的滚动行为、分组标题、折叠或二级分类。
+
+### 组件规则
+
+- IMPORTANT：项目中的纵向分类导航必须复用统一 SideBar，不得在帮助中心、筛选页等各自用 `View` + `Text` 拼出分类列、选中底色和指示条。
+- IMPORTANT：实现前使用 file key `EwHKttY9aJIOS7TM3RqGoW` 和节点 `24787:18812` 读取最新定义；本摘要不能替代 Figma 中的尺寸、排版、颜色、缺口几何和状态组合。
+- 组件 API 应围绕稳定的 `items` 数据、受控选中值、`theme` 和每项的 `badge` / `disabled` / 图标槽建模，并阻止 Figma 未定义的组合。
+- 每项必须提供稳定 `id` 与稳定 `value`，不得使用数组下标或显示文案兼作标识；选中值由调用方受控，组件不得自行保存业务选中状态。
+- `icon` 在 Figma 是侧边栏级变体，同一侧边栏应整列带图标或整列不带。实现层允许按项提供图标槽，但出现「部分项带图标」时必须在 `__DEV__` 下告警。
+- `select=true` 不得与 `disable=true` 组合；禁用项不得触发选中回调，也不得改变受控值。
+- 行高应由内边距与 `24` 行高自然得到 `56`，长文案换行后自然增高；不得按 `56` 写死行高，也不得为容纳文案缩小字号或整体缩放。
+- 未选中、选中、禁用必须成套使用对应 Typography 与 Color 语义 token；不得用 opacity、临时加粗或手写颜色推导状态。
+- `theme=line` 的指示条与两个反向圆角缺口由组件统一渲染，缺口填充色必须取内容面板底色 token；不得用字符、边框或裁剪图片模拟，也不得在业务页面另画一遍。
+- 徽标只表达「有未读 / 有更新」，不承载数量；需要数量角标时应先读取 `Badge 徽标` 的独立权威节点，不得在 SideBar 内自行扩展。
+- `103` 与 `667` 是展示基准。宽度按 Figma 固定，高度必须由父容器和安全区决定；不得用整屏绝对坐标还原示例。
+- 右侧内容区不属于本组件。内容的排版、滚动和空状态由调用方按业务设计稿实现，不得塞进 SideBar。
+
+### 可访问性与交互
+
+- 分类列应暴露为一组同级可选项，每项提供可读名称、选中状态和禁用状态；不得把整列压成一个无法逐项操作的可访问元素。
+- 选中态在视觉上同时使用底色、字重与品牌色区分，不只依赖颜色；禁用态必须同时向辅助技术暴露不可用状态。
+- 指示条、反向圆角缺口和徽标圆点属于装饰元素，必须从无障碍树中隐藏，避免与分类名称重复朗读。
+- `56` 已达平台最小触控尺寸，无需额外 `hitSlop`；但行高随内容变化时仍须保证整行可点。
+- 切换分类后右侧内容的更新应可被辅助技术感知，该行为由调用方负责；SideBar 不得代为公告业务内容。
+- 动态字体与长分类名不得通过缩小字号处理。`badge=true` 的文案在 Figma 为 `whitespace-nowrap`，但 `103` 列宽放不下长文案，实现收敛为单行省略；完整值应可通过可访问名称获取。
+
+### React Native / Expo 实现约束
+
+- 使用单一 SideBar 组件按稳定 `items` 数组渲染，整行为一个 `Pressable`；不要为两种 theme、有无图标或具体业务分类复制 JSX。
+- 尺寸、间距、指示条、缺口与徽标偏移从 `componentTokens.sideBar` 读取，颜色与排版只引用语义 token。
+- 指示条用绝对定位 + `marginTop` 负偏移实现垂直居中，不依赖百分比变换；反向圆角缺口用 `react-native-svg` 的 `Path` 按 Figma 路径绘制，不引入新依赖。
+- 缺口位于行边界之外（上下各 `-9`），必须作为选中行的绝对定位子元素渲染，使其跟随行高变化；容器自身 `overflow: 'hidden'`，首项选中时上方缺口被裁掉，与 Figma 的 `overflow-clip` 一致。
+- 图标槽通过接收当前状态前景色的 render prop 提供，使图标颜色跟随 Figma 定义的三态，调用方不需要自己判断选中态。
+- Figma 的 `overflow-clip` 是静态画布行为。分类数量超出可视高度时实现改为纵向滚动，避免分类被静默裁掉；不滚动时与设计稿一致。滚动条、滚动指示与吸附行为 Figma 未定义。
+
+### Figma 读取与实现流程
+
+1. 使用 file key `EwHKttY9aJIOS7TM3RqGoW` 和节点 `24787:18812` 获取 SideBar 最新结构、变量与截图；必要时继续读取 `27264:20884`、`24787:18927` 与 `27264:20748`。
+2. 确认 `theme`、是否带图标、每项的稳定 id 与 value、徽标与禁用项，并排除 `select=true + disable=true` 等无效组合。
+3. 将容器底色、行内边距、三态排版与颜色、指示条、反向圆角缺口和徽标偏移映射到项目已有 token；缺失定义时先回到 Figma 核实。
+4. 由调用方受控选中值并渲染右侧内容区，为每项提供明确的可访问名称。
+5. 对照 Figma 验证 `103` 宽、`56` 行高、`16` / `8+8` 内边距、`3×14` 指示条、`9` 反向圆角、`8` 徽标圆点、三态排版，以及长文案、动态字体与无障碍状态。
+
+### 项目实现现状
+
+- 统一实现为 `src/components/SideBar.tsx`，尺寸与间距来自 `componentTokens.sideBar`。
+- `theme=line` / `theme=tag`、`icon`、`badge`、`disable` 四个轴均已实现；`select=true + disable=true` 由实现逻辑收敛为「禁用优先、不表达选中」，与 Figma 不提供该组合一致。
+- 已知设计缺口，扩展前必须先回到 Figma 核实：行的按压 / hover 态、分组标题与二级分类、徽标数量形态，以及超长分类列的滚动指示。
 
 ## Icon
 

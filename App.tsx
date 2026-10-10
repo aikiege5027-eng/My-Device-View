@@ -46,8 +46,12 @@ import { DeviceBackDemoDialog } from './components/DeviceBackDemoDialog';
 import { DeviceDetailsView } from './components/DeviceDetailsView';
 import { DeviceDynamicsDialog } from './components/DeviceDynamicsDialog';
 import { ExportReportSettingsView } from './components/ExportReportSettingsView';
+import { FaultMessageFilterView } from './components/FaultMessageFilterView';
+import { HelpCenterView } from './components/HelpCenterView';
+import { MoreActionsView, type MoreActionId } from './components/MoreActionsView';
 import { MyDeviceHomeView } from './components/MyDeviceHomeView';
 import {
+  Dialog,
   PageTemplate,
   colorThemes,
   componentTokens,
@@ -1254,10 +1258,30 @@ function DeviceView({
 
 const SCREENSHOT_TARGET_ID = 'app-screenshot-target';
 
+/** 「更多操作」中尚未出设计稿的入口，点击后只用占位弹窗给出可见反馈。 */
+const undesignedMoreActionTitles: Record<
+  Exclude<MoreActionId, 'faultMessageFilter' | 'helpCenter'>,
+  string
+> = {
+  deviceRegistration: '设备注册',
+};
+
 export default function App() {
-  const [screen, setScreen] = useState<'workOrder' | 'device' | 'home'>('home');
+  const [screen, setScreen] = useState<'workOrder' | 'device' | 'home' | 'moreActions' | 'helpCenter' | 'faultMessageFilter'>('home');
   const [deviceType, setDeviceType] = useState<DeviceType>('KCECPUC');
+  const [placeholderTitle, setPlaceholderTitle] = useState<string | null>(null);
   const [selectedProject, setSelectedProject] = useState<ProjectDetailsProject | null>(null);
+  const openMoreAction = (action: MoreActionId) => {
+    if (action === 'helpCenter') {
+      setScreen('helpCenter');
+      return;
+    }
+    if (action === 'faultMessageFilter') {
+      setScreen('faultMessageFilter');
+      return;
+    }
+    setPlaceholderTitle(undesignedMoreActionTitles[action]);
+  };
   const openDevice = (nextDeviceType: DeviceType) => {
     setDeviceType(nextDeviceType);
     setSelectedProject(null);
@@ -1282,8 +1306,25 @@ export default function App() {
               <MyDeviceHomeView
                 onBack={() => setScreen('workOrder')}
                 onOpenProjectDetails={openProjectDetails}
+                onSelectTab={{ more: () => setScreen('moreActions') }}
               />
             )
+            : screen === 'moreActions'
+              ? (
+                <MoreActionsView
+                  onSelectAction={openMoreAction}
+                  onSelectTab={{ home: returnToHome }}
+                />
+              )
+            : screen === 'helpCenter'
+              ? (
+                <HelpCenterView
+                  onBack={() => setScreen('moreActions')}
+                  onOpenResource={(resource) => setPlaceholderTitle(resource.name)}
+                />
+              )
+            : screen === 'faultMessageFilter'
+              ? <FaultMessageFilterView onBack={() => setScreen('moreActions')} />
             : (
               <DeviceView
                 deviceType={deviceType}
@@ -1293,6 +1334,13 @@ export default function App() {
               />
             )}
       </View>
+      {/* 尚未出设计稿的入口（更多操作的两个入口、帮助中心的资源文件）只给可见反馈。 */}
+      <Dialog
+        description="该入口的目标内容尚未在设计稿中定义。"
+        onClose={() => setPlaceholderTitle(null)}
+        title={placeholderTitle ?? ''}
+        visible={placeholderTitle !== null}
+      />
       <WebScreenshotTool
         fileName={`remote-elevator-${screen}-full@3x.png`}
         targetId={SCREENSHOT_TARGET_ID}

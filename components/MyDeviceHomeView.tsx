@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react';
 import {
-  Platform,
   Pressable,
   ScrollView,
   StatusBar,
@@ -9,7 +8,6 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Mask, Rect, Stop } from 'react-native-svg';
 
 import HomeBack from '../assets/home-back.svg';
@@ -26,10 +24,6 @@ import HomeRegistrationRate from '../assets/home-registration-rate.svg';
 import HomeSearch from '../assets/home-search.svg';
 import HomeStar from '../assets/home-star.svg';
 import HomeStarFilled from '../assets/home-star-filled.svg';
-import HomeStatusRight from '../assets/home-status-right.svg';
-import HomeTab from '../assets/home-tab.svg';
-import ReportTab from '../assets/report-tab.svg';
-import UserTab from '../assets/user-tab.svg';
 import {
   BottomSheet,
   FilterBar,
@@ -38,6 +32,8 @@ import {
   typographyTokens,
   type PickerColumns,
 } from '@kone/mobile-design-system';
+import { BottomTabBar, type BottomTabId } from './BottomTabBar';
+import { PreviewStatusBar, useMobileChromeInsets } from './mobileChrome';
 import type { ProjectDetailsProject } from './ProjectDetailsView';
 
 const colors = colorThemes.light;
@@ -45,6 +41,7 @@ const colors = colorThemes.light;
 type MyDeviceHomeViewProps = {
   onBack: () => void;
   onOpenProjectDetails: (project: ProjectDetailsProject) => void;
+  onSelectTab?: Partial<Record<BottomTabId, () => void>>;
 };
 
 type ProjectSortId = 'default' | 'score-desc' | 'score-asc' | 'status-priority';
@@ -121,8 +118,6 @@ type HeroBackgroundProps = {
 const FIGMA_CANVAS_WIDTH = 375;
 const FIGMA_HERO_HEIGHT = 294;
 const FIGMA_NAVBAR_HEIGHT = 46;
-const FIGMA_WEB_TOP_SAFE_AREA = 44;
-const FIGMA_WEB_BOTTOM_SAFE_AREA = 34;
 
 function HeroBackground({ height, startY = 0 }: HeroBackgroundProps) {
   if (height <= 0) return null;
@@ -257,25 +252,8 @@ function ProjectCard({ onOpenProjectDetails, project }: ProjectCardProps) {
   );
 }
 
-function BottomTab({
-  active = false,
-  Icon,
-  label,
-}: {
-  active?: boolean;
-  Icon: React.ComponentType<{ height?: number; width?: number }>;
-  label: string;
-}) {
-  return (
-    <View accessibilityLabel={label} style={styles.bottomTab}>
-      <Icon height={20} width={20} />
-      <Text style={[styles.bottomTabLabel, active && styles.bottomTabLabelActive]}>{label}</Text>
-    </View>
-  );
-}
-
-export function MyDeviceHomeView({ onBack, onOpenProjectDetails }: MyDeviceHomeViewProps) {
-  const insets = useSafeAreaInsets();
+export function MyDeviceHomeView({ onBack, onOpenProjectDetails, onSelectTab }: MyDeviceHomeViewProps) {
+  const { bottomInset, isWebPreview, topInset } = useMobileChromeInsets();
   const [projectSort, setProjectSort] = useState<ProjectSortId>(DEFAULT_PROJECT_SORT);
   const [sortPickerOpen, setSortPickerOpen] = useState(false);
   const [draftProjectSort, setDraftProjectSort] = useState<ProjectSortId>(DEFAULT_PROJECT_SORT);
@@ -297,11 +275,6 @@ export function MyDeviceHomeView({ onBack, onOpenProjectDetails }: MyDeviceHomeV
       return comparison || left.defaultOrder - right.defaultOrder;
     });
   }, [projectSort]);
-  const isWebPreview = Platform.OS === 'web' && insets.top === 0;
-  const topInset = isWebPreview ? FIGMA_WEB_TOP_SAFE_AREA : insets.top;
-  const bottomInset = Platform.OS === 'web' && insets.bottom === 0
-    ? FIGMA_WEB_BOTTOM_SAFE_AREA
-    : insets.bottom;
   const topChromeHeight = topInset + FIGMA_NAVBAR_HEIGHT;
   const scrollHeroHeight = Math.max(0, FIGMA_HERO_HEIGHT - topChromeHeight);
 
@@ -316,12 +289,7 @@ export function MyDeviceHomeView({ onBack, onOpenProjectDetails }: MyDeviceHomeV
       <StatusBar backgroundColor={colors.home.heroGreen} barStyle="dark-content" />
       <View style={[styles.topChrome, { paddingTop: topInset }]}>
         <HeroBackground height={topChromeHeight} />
-        {isWebPreview ? (
-          <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.previewStatusBar}>
-            <Text style={styles.previewTime}>9:41</Text>
-            <HomeStatusRight height={21} width={67} />
-          </View>
-        ) : null}
+        {isWebPreview ? <PreviewStatusBar /> : null}
         <View style={styles.navbar}>
           <Pressable
             accessibilityLabel="返回工单明细"
@@ -512,11 +480,7 @@ export function MyDeviceHomeView({ onBack, onOpenProjectDetails }: MyDeviceHomeV
       </ScrollView>
 
       <View style={[styles.bottomSafeArea, { paddingBottom: bottomInset }]}>
-        <View style={styles.bottomBar}>
-          <BottomTab active Icon={HomeTab} label="首页" />
-          <BottomTab Icon={ReportTab} label="报告中心" />
-          <BottomTab Icon={UserTab} label="我的" />
-        </View>
+        <BottomTabBar activeTab="home" onSelectTab={onSelectTab} />
       </View>
 
       {/* Picker 面板不含遮罩、动画与安全区，由 BottomSheet 宿主负责。 */}
@@ -553,8 +517,6 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.home.pageBackground },
   topChrome: { position: 'relative', overflow: 'hidden', backgroundColor: colors.home.pageBackground },
   heroBackground: { position: 'absolute', top: 0, left: 0, right: 0 },
-  previewStatusBar: { position: 'absolute', top: 0, left: 0, right: 0, height: 44, flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', paddingTop: 8, paddingRight: 15, paddingLeft: 28 },
-  previewTime: { marginTop: 4, color: colors.home.strongText, ...typographyTokens.status15Semibold },
   navbar: { height: FIGMA_NAVBAR_HEIGHT, alignItems: 'center', justifyContent: 'center' },
   backButton: { position: 'absolute', left: 12, width: 40, height: FIGMA_NAVBAR_HEIGHT, alignItems: 'flex-start', justifyContent: 'center', borderRadius: 4, zIndex: 2 },
   navTitle: { color: colors.text.primary, ...typographyTokens.title18Semibold },
@@ -635,8 +597,4 @@ const styles = StyleSheet.create({
   expandAction: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8 },
   expandText: { color: colors.text.brand, ...typographyTokens.body14Medium },
   bottomSafeArea: { backgroundColor: colors.background.container },
-  bottomBar: { height: 56, flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderTopWidth: 0.5, borderTopColor: colors.border.componentStroke, backgroundColor: colors.background.container },
-  bottomTab: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 2 },
-  bottomTabLabel: { color: colors.text.primary, ...typographyTokens.footer10Regular },
-  bottomTabLabelActive: { color: colors.brand.default, ...typographyTokens.footer10Semibold },
 });

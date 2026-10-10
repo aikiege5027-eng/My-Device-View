@@ -5,9 +5,9 @@ import { colorThemes, componentTokens, radiusTokens, typographyTokens } from '@k
 
 /**
  * 对应 CheckTag 的尺寸档：`medium` 用在设备事件面板行（24 高），
- * `large` 用在「更多」面板的网格（32 高）。
+ * `extraLarge` 用在「更多」面板的网格（40 高）。
  */
-export type FaultCodePillSize = 'large' | 'medium';
+export type FaultCodePillSize = 'extraLarge' | 'medium';
 
 export type FaultCodePillProps = {
   accessibilityHint?: string;
@@ -80,17 +80,17 @@ export function FaultCodePill({
 const colors = colorThemes.light;
 
 /**
- * 故障代码比次数粗一档。排版按 Tag 规范随尺寸切换：`large` 用 `Body 14/22`，
+ * 故障代码比次数粗一档。排版按 Tag 规范随尺寸切换：`extraLarge` 用 `Body 14/22`，
  * `medium` 用 `Foot 12/20`。
  */
 const typographyBySize = {
-  large: { code: typographyTokens.body14Semibold, count: typographyTokens.body14Regular },
+  extraLarge: { code: typographyTokens.body14Semibold, count: typographyTokens.body14Regular },
   medium: { code: typographyTokens.footer12Semibold, count: typographyTokens.footer12Regular },
 } as const;
 
 /** 视觉高度不等于触控热区；只在纵向扩展，避免压到相邻胶囊的间距。 */
 const hitSlopBySize = {
-  large: { bottom: 6, left: 0, right: 0, top: 6 },
+  extraLarge: { bottom: 2, left: 0, right: 0, top: 2 },
   medium: { bottom: 10, left: 0, right: 0, top: 10 },
 } as const;
 

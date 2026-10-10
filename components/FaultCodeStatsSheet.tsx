@@ -42,8 +42,8 @@ export type FaultCodeStatsSheetProps = {
  * 网格（每行 3 个、行列间距 `12`）、底部 `80` 高双按钮操作区（`重置` / `确认`，
  * `large + round + block`，间距 `8`）。
  *
- * 网格标签取 CheckTag `size=large`（32 高）。Figma `20341:9147` 定义的是
- * `extraLarge`（40 高），这里按业务要求收紧一档。
+ * 网格标签取 CheckTag `size=extraLarge`（40 高），与 Figma `20341:9147` 一致；
+ * 行列间距按业务要求从 `12` 收到 `8`。
  *
  * 筛选采用排除语义：默认全部选中，取消某一项即把该故障代码从列表里排除。草稿记录
  * 的是「被取消的代码」，因此空集等于全选。
@@ -152,7 +152,7 @@ export function FaultCodeStatsSheet({
                 key={item.code}
                 layoutStyle={styles.tag}
                 onToggle={() => toggle(item.code)}
-                size="large"
+                size="extraLarge"
               />
             ))}
           </View>
@@ -286,7 +286,12 @@ const styles = StyleSheet.create({
     width: closeIconSize,
   },
   grid: { flexGrow: 0, flexShrink: 1 },
-  gridContent: { gap: 12, paddingTop: 36, paddingBottom: 16, paddingHorizontal: 16 },
+  /**
+   * 标题与下方内容的间距。Figma `20341:9144` 是 `36`（标题底 42 → 标签起始 78），
+   * 但设计稿里标题下面直接就是标签网格；这里多了一行全选 / 反选，所以收到 `16`，
+   * 与面板其余的 16 内边距同一节奏。
+   */
+  gridContent: { gap: 12, paddingTop: 16, paddingBottom: 16, paddingHorizontal: 16 },
   /** 批量操作行，与下方网格保持 12 的间距；两个入口左对齐成一组。 */
   bulkRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   /** 与全选文案完全一致：`Body 14/22 Regular` + 主文本色。 */

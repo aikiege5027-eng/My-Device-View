@@ -70,6 +70,14 @@ export type {
   DividerProps,
 } from './components/Divider';
 
+export { Fab } from './components/Fab';
+export type {
+  FabIconState,
+  FabProps,
+  FabSize,
+  FabTheme,
+} from './components/Fab';
+
 export { FilterBar, FilterTrigger } from './components/FilterBar';
 export type {
   FilterBarItem,
@@ -86,6 +94,21 @@ export type {
   PageFooterActions,
   PageTemplateProps,
 } from './components/PageTemplate';
+
+export { SideBar } from './components/SideBar';
+export type {
+  SideBarIconState,
+  SideBarItem,
+  SideBarProps,
+  SideBarTheme,
+} from './components/SideBar';
+
+export { Progress } from './components/Progress';
+export type {
+  ProgressProps,
+  ProgressStatus,
+  ProgressTheme,
+} from './components/Progress';
 
 export { Picker } from './components/Picker';
 export type {

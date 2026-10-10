@@ -680,6 +680,112 @@ export const componentTokens = {
     /** Figma defines at most four triggers in one filter row. */
     maxItems: 4,
   },
+  progress: {
+    line: {
+      /** 轨道与 inner 的高度；`343` 是展示基准宽度，实际由父容器决定。 */
+      trackHeight: 6,
+      /** 轨道与右侧百分比 / 状态图标之间的 auto layout 间距。 */
+      contentGap: 8,
+      /** 右侧百分比文案与状态图标槽的固定宽度。 */
+      labelWidth: 36,
+      /** `label=true` 时状态图标槽的高度，决定该变体的整体行高 22。 */
+      iconSlotHeight: 22,
+      iconSize: 20,
+    },
+  },
+  fab: {
+    /**
+     * Figma `Light/Shadow/2`：`0 4 10 rgba(0,0,0,0.1)`，spread 0。
+     * 四个主题、四档尺寸的全部 64 个变体共用同一组阴影。
+     */
+    shadow: {
+      color: '#000000',
+      offsetY: 4,
+      opacity: 0.1,
+      radius: 10,
+      /** Android 没有等价的 offset/radius 组合，用 `elevation` 近似同一层级。 */
+      elevation: 4,
+    },
+    /** 图标与文案之间的 auto layout 间距（仅 `text=true`）。 */
+    contentGap: 4,
+    /** `square` / `rectangle` 的圆角，Figma `radius/radius-medium`。 */
+    squareRadius: radiusTokens.medium,
+    sizes: {
+      large: {
+        /** `text=false` 时的固定边长。 */
+        boxSize: 48,
+        iconSize: 24,
+        /** `text=true` 时的内边距；行高 24 + 上下 12 = 48。 */
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+      },
+      medium: {
+        boxSize: 40,
+        iconSize: 20,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+      },
+      small: {
+        boxSize: 32,
+        iconSize: 18,
+        paddingHorizontal: 12,
+        paddingVertical: 5,
+      },
+      extraSmall: {
+        boxSize: 28,
+        iconSize: 18,
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+      },
+    },
+    /**
+     * `small` / `extraSmall` 的 `28` / `32` 小于推荐触控尺寸。该尺寸由 Figma 指定，
+     * 组件不自行改变视觉大小，调用方在密集布局中需自行评估热区。
+     */
+    minTouchSize: 44,
+  },
+  sideBar: {
+    /** Figma `SideBar 侧边栏` 组件集的基准宽度（103×667），高度由父容器决定。 */
+    width: 103,
+    /**
+     * `item/line` 与 `item/tag` 的基准行高均为 56。单行文案时由内边距与 24 行高
+     * 自然得到；长文案换行后行高增加，不得按 56 写死。
+     */
+    itemMinHeight: 56,
+    /** 图标与文案间距，仅 `icon=true` 变体存在。 */
+    contentGap: 2,
+    /** `app` 图标槽尺寸。 */
+    iconSize: 20,
+    line: {
+      /** `item/line` 的行内边距。 */
+      padding: 16,
+      /** 选中指示条：贴左边缘垂直居中的品牌色胶囊，3 宽 14 高。 */
+      indicatorWidth: 3,
+      indicatorHeight: 14,
+      /**
+       * 选中项右侧上下各一个 9×9 的反向圆角缺口（Figma `suffix` / `prefix`），
+       * 用容器底色填充，使白色选中块与右侧内容面板连成一片。
+       */
+      notchSize: 9,
+    },
+    tag: {
+      /** `item/tag` 外层内边距；内层 tag 自身再留一层同值内边距。 */
+      outerPadding: 8,
+      innerPadding: 8,
+      /** 选中 tag 的圆角，Figma `radius/radius-medium`。 */
+      radius: 6,
+    },
+    /** 圆点徽标直径（`badge=true`）。 */
+    badgeDotSize: 8,
+    /**
+     * 圆点相对文案尾端 0×0 锚点的偏移。Figma 为 `left:calc(50%+4)` /
+     * `top:calc(50%-8)` 搭配 `-translate-1/2`，在 0 尺寸锚点上折算为 `0 / -12`。
+     */
+    badgeDotOffsetX: 0,
+    badgeDotOffsetY: -12,
+    /** 56 的视觉行高已达平台最小触控尺寸，无需额外 hitSlop。 */
+    minTouchSize: 44,
+  },
   projectStatusTag: {
     width: 48,
     height: 22,

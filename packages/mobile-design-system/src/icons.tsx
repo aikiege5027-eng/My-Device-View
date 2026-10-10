@@ -153,3 +153,40 @@ export function RadioLineCheckIcon(props: SvgProps) {
     </Svg>
   );
 }
+
+/**
+ * Figma `warning-circle-filled`，基准 `20×20`（读取自 Progress 节点 `24386:5271`）。
+ */
+export function WarningCircleFilledIcon(props: SvgProps) {
+  return (
+    <Svg fill="none" preserveAspectRatio="none" viewBox="0 0 20 20" {...props}>
+      <G>
+        <Path
+          d="M18.75 10C18.75 5.16751 14.8325 1.25 10 1.25C5.16751 1.25 1.25 5.16751 1.25 10C1.25 14.8325 5.16751 18.75 10 18.75C14.8325 18.75 18.75 14.8325 18.75 10ZM10.625 5.00038V11.875H9.375V5.00038H10.625ZM9.24286 13.75H10.7429V15.25H9.24286V13.75Z"
+          fill="currentColor"
+        />
+      </G>
+    </Svg>
+  );
+}
+
+/**
+ * Figma `close-circle-filled`，基准 `20×20`（读取自 Progress 节点 `24386:5271`）。
+ *
+ * Progress 里的实例带有 `0.9` 的图层不透明度，但该值未绑定任何变量，项目既有的
+ * 同名资产也是满不透明度，因此这里按状态色满不透明渲染。
+ */
+export function CloseCircleFilledIcon(props: SvgProps) {
+  return (
+    <Svg fill="none" preserveAspectRatio="none" viewBox="0 0 20 20" {...props}>
+      <G>
+        <Path
+          clipRule="evenodd"
+          d="M18.75 10C18.75 5.16751 14.8325 1.25 10 1.25C5.16751 1.25 1.25 5.16751 1.25 10C1.25 14.8325 5.16751 18.75 10 18.75C14.8325 18.75 18.75 14.8325 18.75 10ZM9.11613 9.99992L6.02249 13.0936L6.90637 13.9774L10 10.8838L13.0937 13.9775L13.9776 13.0936L10.8839 9.99992L13.9774 6.90637L13.0936 6.02249L10 9.11604L6.90652 6.02255L6.02264 6.90643L9.11613 9.99992Z"
+          fill="currentColor"
+          fillRule="evenodd"
+        />
+      </G>
+    </Svg>
+  );
+}

@@ -172,6 +172,9 @@ function Wheel<Value extends WheelOptionValue>({
   const scrollRef = useRef<ScrollView>(null);
   const committedIndex = useRef(selectedIndex);
   const initialized = useRef(false);
+  const dragging = useRef(false);
+  const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastOffset = useRef(0);
 
   useEffect(() => {
     const firstRun = !initialized.current;
@@ -205,8 +208,34 @@ function Wheel<Value extends WheelOptionValue>({
     [column, onSelect],
   );
 
+  const cancelIdleSettle = useCallback(() => {
+    if (idleTimer.current === null) return;
+    clearTimeout(idleTimer.current);
+    idleTimer.current = null;
+  }, []);
+
+  useEffect(() => cancelIdleSettle, [cancelIdleSettle]);
+
   const handleScrollSettled = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    dragging.current = false;
+    cancelIdleSettle();
     settle(event.nativeEvent.contentOffset.y);
+  };
+
+  /**
+   * 非触摸滚动（Web 的鼠标滚轮、trackpad）既不产生 `onScrollEndDrag` 也不产生
+   * `onMomentumScrollEnd`，吸附后选中值无法提交。这里在滚动静止后兜底 settle 一次。
+   * 触摸期间不参与，避免与手势抢 `scrollTo`；settle 本身对同一 index 是幂等的。
+   */
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    lastOffset.current = event.nativeEvent.contentOffset.y;
+    if (dragging.current) return;
+
+    cancelIdleSettle();
+    idleTimer.current = setTimeout(() => {
+      idleTimer.current = null;
+      settle(lastOffset.current);
+    }, SCROLL_IDLE_DELAY);
   };
 
   const shiftBy = (delta: number) => {
@@ -248,8 +277,14 @@ function Wheel<Value extends WheelOptionValue>({
         }}
         decelerationRate="fast"
         onMomentumScrollEnd={handleScrollSettled}
+        onScroll={handleScroll}
+        onScrollBeginDrag={() => {
+          dragging.current = true;
+          cancelIdleSettle();
+        }}
         onScrollEndDrag={handleScrollSettled}
         ref={scrollRef}
+        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         snapToInterval={tokens.snapInterval}
         snapToAlignment="start"
@@ -371,6 +406,12 @@ const accessibilityActions = [
 
 const colors = colorThemes.light;
 const tokens = componentTokens.picker;
+
+/**
+ * 非触摸滚动静止后兜底 settle 的等待时长。Figma 未定义滚动动效，这是实现层为了
+ * 让鼠标滚轮 / trackpad 也能提交选中值而取的工程值，不影响任何视觉尺寸。
+ */
+const SCROLL_IDLE_DELAY = 120;
 
 const styles = StyleSheet.create({
   container: {
