@@ -5,6 +5,7 @@ import ArrowRight from '../assets/arrow-right.svg';
 import EventChevronRight from '../assets/event-chevron-right.svg';
 import { FaultCodePill } from './FaultCodePill';
 import { FaultCodeStatsSheet, type FaultCodeStat } from './FaultCodeStatsSheet';
+import { ChevronDownIcon } from './icons';
 import {
   Divider,
   Tag,
@@ -121,6 +122,13 @@ const faultCodeStats: readonly FaultCodeStat[] = [
 /** 面板行默认展示的统计数量，其余在「更多」面板里展示。 */
 const panelStatCount = 3;
 
+/** 故障消息列表每页条数，底部「查看更多」每次展开一页。 */
+const messagePageSize = 10;
+/** 「查看更多」/「收起」的 chevron 比折叠 header 的 24 小一档，与 14 号文字同级。 */
+const messagePagerIconSize = 16;
+/** 文案视觉高度只有 22，用 hitSlop 把热区补到平台最小触控尺寸。 */
+const messagePagerHitSlop = { bottom: 8, left: 8, right: 8, top: 8 };
+
 /**
  * 面板行固定展示次数最高的 3 个故障代码，顺序不随选择变化。
  *
@@ -161,16 +169,31 @@ export function DeviceEventsPanel() {
    */
   const [excludedCodes, setExcludedCodes] = useState<readonly string[]>([]);
   const [statsSheetVisible, setStatsSheetVisible] = useState(false);
+  /**
+   * 故障消息列表当前展示的条数，由底部「查看更多」每次加一页。
+   *
+   * 故障代码筛选变化时不重置：筛选后列表变短时本来就全部可见（控件自动变成
+   * 「收起」），重新放开筛选还能接着之前的进度，不会把用户已展开的位置吞掉。
+   */
+  const [visibleMessageCount, setVisibleMessageCount] = useState(messagePageSize);
 
   const tileWidth = Math.max(60, (innerWidth - categoryGap * 3) / 4);
   const handleLayout = (event: LayoutChangeEvent) =>
     setInnerWidth(event.nativeEvent.layout.width - 32);
   const activeCategory = categories.find((item) => item.id === category);
 
-  const visibleMessages =
+  const filteredMessages =
     excludedCodes.length === 0
       ? faultMessages
       : faultMessages.filter((item) => !excludedCodes.includes(item.code));
+
+  const visibleMessages = filteredMessages.slice(0, visibleMessageCount);
+  const allMessagesVisible = visibleMessages.length >= filteredMessages.length;
+  /** 下一次展开实际会多出来的条数，用于无障碍提示。 */
+  const nextPageCount = Math.min(
+    messagePageSize,
+    filteredMessages.length - visibleMessages.length,
+  );
 
   /** 取消选中即加入排除集，再次选中即移出排除集。 */
   const toggleCode = (code: string) =>
@@ -282,14 +305,53 @@ export function DeviceEventsPanel() {
               />
             </Pressable>
           </View>
-          {visibleMessages.length === 0 ? (
+          {filteredMessages.length === 0 ? (
             /** 排除语义允许「全部取消」，此时列表为空。Figma 未定义空态样式。 */
             <Text style={styles.undesignedHint}>已取消全部故障代码，没有可展示的故障消息。</Text>
           ) : (
-            <View accessibilityLabel="故障消息列表" style={styles.list}>
-              {visibleMessages.map((item) => (
-                <FaultMessageCard item={item} key={item.id} />
-              ))}
+            /**
+             * 列表与分页入口包一层，让面板 `16` 的段间距只作用在整块外侧，
+             * 两者之间沿用列表自己的 `8` 卡片间距。
+             */
+            <View style={styles.messageBlock}>
+              <View accessibilityLabel="故障消息列表" style={styles.list}>
+                {visibleMessages.map((item) => (
+                  <FaultMessageCard item={item} key={item.id} />
+                ))}
+              </View>
+              {/**
+               * 故障消息超过一页时底部给分页入口：每次展开下一组 `messagePageSize` 条，
+               * 全部展开后变成「收起」回到第一页。
+               *
+               * Figma 未定义该控件，这里复用项目里既有的「查看更多 / 收起」形态
+               * （导出报告设置的设备列表，`ExportReportSettingsView`）：居中的
+               * `Body 14/Regular` + `text-color-placeholder` 文案加 `16` 的 chevron，
+               * 展开态把 chevron 旋转 180°，不自造新的视觉。
+               */}
+              {filteredMessages.length > messagePageSize ? (
+                <View style={styles.messagePager}>
+                  <Pressable
+                    accessibilityHint={allMessagesVisible
+                      ? `收起后只显示前 ${messagePageSize} 条故障消息`
+                      : `展开后续 ${nextPageCount} 条故障消息`}
+                    accessibilityLabel={allMessagesVisible ? '收起' : '查看更多'}
+                    accessibilityRole="button"
+                    accessibilityState={{ expanded: allMessagesVisible }}
+                    hitSlop={messagePagerHitSlop}
+                    onPress={() => setVisibleMessageCount(allMessagesVisible
+                      ? messagePageSize
+                      : visibleMessageCount + messagePageSize)}
+                    style={styles.messagePagerControl}
+                  >
+                    <Text style={styles.messagePagerLabel}>
+                      {allMessagesVisible ? '收起' : '查看更多'}
+                    </Text>
+                    <View style={allMessagesVisible ? styles.messagePagerIconUp : undefined}>
+                      <ChevronDownIcon color={colors.text.placeholder} size={messagePagerIconSize} />
+                    </View>
+                  </Pressable>
+                </View>
+              ) : null}
             </View>
           )}
 
@@ -401,6 +463,12 @@ const styles = StyleSheet.create({
   moreLabel: { color: colors.text.secondary, textAlign: 'center', ...typographyTokens.footer12Regular },
 
   list: { gap: 8 },
+  messageBlock: { gap: 8 },
+  /** 分页入口与导出报告设置里的「查看更多 / 收起」同一套形态，含那 `4` 的上留白。 */
+  messagePager: { alignItems: 'center', paddingTop: 4 },
+  messagePagerControl: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  messagePagerLabel: { color: colors.text.placeholder, ...typographyTokens.body14Regular },
+  messagePagerIconUp: { transform: [{ rotate: '180deg' }] },
   undesignedHint: { paddingVertical: 24, color: colors.text.placeholder, textAlign: 'center', ...typographyTokens.footer12Regular },
   card: { gap: 4, padding: 12, borderRadius: radiusTokens.small, backgroundColor: colors.background.secondaryContainer },
   cardTopRow: { minHeight: 24, flexDirection: 'row', alignItems: 'center', gap: 4 },
