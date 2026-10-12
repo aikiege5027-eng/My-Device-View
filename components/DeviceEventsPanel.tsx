@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import ArrowRight from '../assets/arrow-right.svg';
 import EventChevronRight from '../assets/event-chevron-right.svg';
@@ -161,7 +161,6 @@ const categories: readonly { count: number; id: EventCategory; label: string }[]
 export function DeviceEventsPanel() {
   const [range, setRange] = useState<EventRange>('30d');
   const [category, setCategory] = useState<EventCategory>('fault');
-  const [innerWidth, setInnerWidth] = useState(311);
   /**
    * 故障代码筛选采用排除语义：默认全部选中，取消选中即把该代码从列表里排除。
    * 状态记录「被取消的代码」而不是「被选中的代码」，这样空集天然等于全选，
@@ -177,9 +176,6 @@ export function DeviceEventsPanel() {
    */
   const [visibleMessageCount, setVisibleMessageCount] = useState(messagePageSize);
 
-  const tileWidth = Math.max(60, (innerWidth - categoryGap * 3) / 4);
-  const handleLayout = (event: LayoutChangeEvent) =>
-    setInnerWidth(event.nativeEvent.layout.width - 32);
   const activeCategory = categories.find((item) => item.id === category);
 
   const filteredMessages =
@@ -202,7 +198,7 @@ export function DeviceEventsPanel() {
     );
 
   return (
-    <View onLayout={handleLayout} style={styles.panel}>
+    <View style={styles.panel}>
       <View accessibilityRole="radiogroup" style={styles.rangeRow}>
         <View style={styles.rangeGroup}>
           {ranges.map((item) => {
@@ -230,32 +226,47 @@ export function DeviceEventsPanel() {
         </View>
       </View>
 
+      {/**
+       * 分类卡片按 `categoryColumns` 列分排，列宽交给 flex 等分而不是实测宽度换算。
+       *
+       * 之前用 `onLayout` 测出面板宽度再算出每格的像素宽，结果这个像素值会被 React
+       * 写成行内宽度：在比 `375` 宽的窗口里预览时算出的格子偏宽，而页面截图工具会把
+       * 内容放进 `375` 的暂存容器重新排版，宽度却还是旧的，于是一排只放得下 2 个。
+       * 改成 flex 等分后不再依赖测量，任何容器宽度下都稳定是 4 列。
+       */}
       <View accessibilityRole="radiogroup" style={styles.categoryGrid}>
-        {categories.map((item) => {
-          const selected = item.id === category;
-          return (
-            <Pressable
-              accessibilityLabel={`${item.label} ${item.count} 条`}
-              accessibilityRole="radio"
-              accessibilityState={{ checked: selected }}
-              key={item.id}
-              onPress={() => setCategory(item.id)}
-              style={({ pressed }) => [
-                styles.categoryTile,
-                { width: tileWidth },
-                selected && styles.categoryTileSelected,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text numberOfLines={1} style={[styles.categoryLabel, selected && styles.categoryTextSelected]}>
-                {item.label}
-              </Text>
-              <Text style={[styles.categoryCount, selected && styles.categoryTextSelected]}>
-                {item.count}
-              </Text>
-            </Pressable>
-          );
-        })}
+        {categoryRows.map((row) => (
+          <View key={row.id} style={styles.categoryRow}>
+            {row.items.map((item) => {
+              const selected = item.id === category;
+              return (
+                <Pressable
+                  accessibilityLabel={`${item.label} ${item.count} 条`}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: selected }}
+                  key={item.id}
+                  onPress={() => setCategory(item.id)}
+                  style={({ pressed }) => [
+                    styles.categoryTile,
+                    selected && styles.categoryTileSelected,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <Text numberOfLines={1} style={[styles.categoryLabel, selected && styles.categoryTextSelected]}>
+                    {item.label}
+                  </Text>
+                  <Text style={[styles.categoryCount, selected && styles.categoryTextSelected]}>
+                    {item.count}
+                  </Text>
+                </Pressable>
+              );
+            })}
+            {/* 末排补等宽占位，保证最后一排的列宽与前几排一致。 */}
+            {Array.from({ length: categoryColumns - row.items.length }, (_, index) => (
+              <View key={`${row.id}-spacer-${index}`} style={styles.categoryTileSpacer} />
+            ))}
+          </View>
+        ))}
       </View>
 
       {category === 'fault' ? (
@@ -413,6 +424,16 @@ const eventColors = colors.deviceEvents;
 
 /** Figma 分类卡片 auto layout 间距，行列共用。 */
 const categoryGap = 9;
+/** Figma 分类卡片固定 4 列。分类表是静态的，分排结果也在模块加载时算好。 */
+const categoryColumns = 4;
+const categoryRows: readonly { id: string; items: readonly (typeof categories)[number][] }[] =
+  Array.from(
+    { length: Math.ceil(categories.length / categoryColumns) },
+    (_, row) => ({
+      id: `category-row-${row}`,
+      items: categories.slice(row * categoryColumns, (row + 1) * categoryColumns),
+    }),
+  );
 
 /**
  * 「更多」入口的几何，取 Tag `size=medium`（24 高、8/2 内边距、14 图标、`Foot 12`），
@@ -428,8 +449,10 @@ const styles = StyleSheet.create({
   rangeChipSelected: { borderRadius: 50, backgroundColor: colors.brand.default },
   rangeText: { color: eventColors.rangeInactiveText, ...typographyTokens.footer10Regular, lineHeight: 12 },
   rangeTextSelected: { color: colors.text.white, ...typographyTokens.footer10Semibold, lineHeight: 12 },
-  categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', columnGap: categoryGap, rowGap: categoryGap },
-  categoryTile: { gap: 2, paddingHorizontal: 4, paddingVertical: 8, alignItems: 'center', borderRadius: radiusTokens.medium, backgroundColor: colors.brand.light },
+  categoryGrid: { gap: categoryGap },
+  categoryRow: { flexDirection: 'row', alignItems: 'flex-start', gap: categoryGap },
+  categoryTile: { minWidth: 0, flex: 1, gap: 2, paddingHorizontal: 4, paddingVertical: 8, alignItems: 'center', borderRadius: radiusTokens.medium, backgroundColor: colors.brand.light },
+  categoryTileSpacer: { minWidth: 0, flex: 1 },
   /** 选中态加 1 边框，内边距同步减 1，避免行高比未选中卡片高 2。 */
   categoryTileSelected: { paddingHorizontal: 3, paddingVertical: 7, borderWidth: 1, borderColor: colors.brand.default },
   categoryLabel: { maxWidth: '100%', color: eventColors.categoryInactiveText, textAlign: 'center', ...typographyTokens.footer12Regular, lineHeight: 16 },
