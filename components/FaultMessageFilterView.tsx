@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Platform,
   Pressable,
@@ -191,7 +191,13 @@ const MAX_CODE_ROWS = 2;
 const CODE_DIGIT_ADVANCE = 26 / 3;
 /** 「更多」两个汉字在 `14px` 下的宽度。取自 Figma 的 `64` 宽胶囊：`10 + 28 + 2 + 16 + 8`。 */
 const MORE_LABEL_WIDTH = 28;
-/** 代码区在 `375` 基准画布上的可用宽度（卡片 `343` 减去左右各 `12` 内边距），用于首帧测量前兜底。 */
+/**
+ * 代码区在 `375` 基准画布上的可用宽度（卡片 `343` 减去左右各 `12` 内边距）。
+ *
+ * 既是首帧测量前的兜底值，也是排版宽度的上限：比 `375` 更宽的视口（桌面浏览器里
+ * 的 Web 预览）不再往一排塞更多胶囊。否则按实测宽度算出的排版会和页面截图工具
+ * 固定 `375` 的重排不一致，截图里一排的胶囊会被裁掉。窄屏仍按实测宽度自适应。
+ */
 const CODE_AREA_BASELINE_WIDTH = 319;
 
 /**
@@ -227,8 +233,17 @@ const moreEntryWidth = codeTagTokens.paddingHorizontal * 2
   + codeTagTokens.contentGap
   + codeTagTokens.iconSize;
 
+type CodeRowLayout = {
+  /** 该块的胶囊是否带 close 槽，影响宽度推算。 */
+  closable: boolean;
+  /** 最多排几排；省略表示不限，用于编辑态的新增代码块。 */
+  maxRows?: number;
+  /** 是否在最后一排给「更多」入口留出位置。 */
+  reserveMoreEntry?: boolean;
+};
+
 /**
- * 把代码按可用宽度贪心排进最多 `MAX_CODE_ROWS` 排，并在最后一排给「更多」留出位置。
+ * 把代码按可用宽度贪心排进若干排，可选地限制排数并在最后一排给「更多」留出位置。
  *
  * 之所以自己算而不是交给 `flexWrap`：「最多两排 + 第二排末尾是更多」这条规则需要知道
  * 哪些代码放不下，`flexWrap` 只会一直往下换行。宽度用 Tag 的几何 token 加字宽推算，
@@ -237,36 +252,108 @@ const moreEntryWidth = codeTagTokens.paddingHorizontal * 2
 function layoutCodeRows(
   codes: readonly VisibleFaultCode[],
   availableWidth: number,
-  closable: boolean,
+  { closable, maxRows, reserveMoreEntry = false }: CodeRowLayout,
 ): readonly (readonly VisibleFaultCode[])[] {
   const rows: VisibleFaultCode[][] = [];
   let current: VisibleFaultCode[] = [];
   let used = 0;
+  let index = 0;
 
-  for (const code of codes) {
-    // 只有最后一排需要给「更多」留位置。
-    const onLastRow = rows.length === MAX_CODE_ROWS - 1;
-    const reserved = onLastRow ? CODE_TAG_GAP + moreEntryWidth : 0;
-    const width = codeTagWidth(code, closable && code.added);
+  // 用下标而不是 for...of：放不下时这一项要留到下一排重试，不能跟着循环被跳过。
+  while (index < codes.length) {
+    const code = codes[index];
+    if (code === undefined) break;
+
+    // 只有最后一排需要给「更多」留位置；不限排数时没有「最后一排」。
+    const onLastRow = maxRows !== undefined && rows.length === maxRows - 1;
+    const reserved = reserveMoreEntry && onLastRow ? CODE_TAG_GAP + moreEntryWidth : 0;
+    const width = codeTagWidth(code, closable);
     const nextUsed = current.length === 0 ? width : used + CODE_TAG_GAP + width;
 
     if (nextUsed + reserved <= availableWidth) {
       current.push(code);
       used = nextUsed;
+      index += 1;
       continue;
     }
 
-    // 一个都放不下说明可用宽度异常，直接收口避免空转。
+    // 空排都放不下一项说明可用宽度异常，直接收口避免空转。
     if (current.length === 0) break;
 
     rows.push(current);
-    if (rows.length >= MAX_CODE_ROWS) return rows;
+    if (maxRows !== undefined && rows.length >= maxRows) return rows;
     current = [];
     used = 0;
   }
 
   if (current.length > 0) rows.push(current);
   return rows.length > 0 ? rows : [[]];
+}
+
+/** 代码区的一排：内容 + 该排末尾是否挂「更多」入口。 */
+type CodeRowSpec = {
+  id: string;
+  items: readonly VisibleFaultCode[];
+  withMoreEntry: boolean;
+};
+
+const markAdded = (codes: readonly FaultCodeItem[]): readonly VisibleFaultCode[] =>
+  codes.map((code) => ({ ...code, added: true }));
+const markExisting = (codes: readonly FaultCodeItem[]): readonly VisibleFaultCode[] =>
+  codes.map((code) => ({ ...code, added: false }));
+
+/** 既有代码块的排版参数：固定两排，末排留出「更多」。 */
+const existingCodeLayout: CodeRowLayout = {
+  closable: false,
+  maxRows: MAX_CODE_ROWS,
+  reserveMoreEntry: true,
+};
+
+/**
+ * 算出一张卡片代码区要渲染的每一排。
+ *
+ * 只读态：新增代码与既有代码合成一串，整体压在两排内，末排挂「更多」。新增的排在
+ * 最前面，所以新增得足够多时两排可能全是新增的代码。
+ *
+ * 编辑态：新增代码独立成块排在上面，不限排数、可一直往下排，也不挂「更多」；既有
+ * 代码仍固定两排并保留「更多」，不受新增数量影响。
+ */
+function buildCodeRowSpecs(
+  added: readonly FaultCodeItem[],
+  existing: readonly FaultCodeItem[],
+  availableWidth: number,
+  editing: boolean,
+): readonly CodeRowSpec[] {
+  const withMoreEntryOnLast = (
+    rows: readonly (readonly VisibleFaultCode[])[],
+    idPrefix: string,
+  ): readonly CodeRowSpec[] => rows.map((items, index) => ({
+    id: `${idPrefix}-${index}`,
+    items,
+    withMoreEntry: index === rows.length - 1,
+  }));
+
+  if (!editing) {
+    const merged = [...markAdded(added), ...markExisting(existing)];
+    return withMoreEntryOnLast(
+      layoutCodeRows(merged, availableWidth, existingCodeLayout),
+      'merged',
+    );
+  }
+
+  const addedRows = added.length === 0
+    ? []
+    : layoutCodeRows(markAdded(added), availableWidth, { closable: true });
+  const existingRows = layoutCodeRows(markExisting(existing), availableWidth, existingCodeLayout);
+
+  return [
+    ...addedRows.map((items, index) => ({
+      id: `added-${index}`,
+      items,
+      withMoreEntry: false,
+    })),
+    ...withMoreEntryOnLast(existingRows, 'existing'),
+  ];
 }
 
 /**
@@ -277,8 +364,11 @@ function layoutCodeRows(
  * （`footer` 为必填），因此与帮助中心一样自行组合导航栏 + 滚动内容区。
  *
  * 结构：导航栏 + 6 张设备类型卡片。卡片默认只读（标题 + 编辑 + 代码胶囊行）；
- * 点「编辑」后该卡片进入编辑态，标题行按钮变「完成」，标题与代码行之间插入
- * 「输入框 + 添加按钮」，新增的代码以品牌色胶囊排在代码行最前面并可删除。
+ * 点「编辑」后该卡片进入编辑态，标题行按钮变「完成」，标题与代码区之间插入
+ * 「输入框 + 添加按钮」。
+ *
+ * 代码区的排法见 `buildCodeRowSpecs`：编辑态把新增代码独立成块排在上面（不限排数、
+ * 不挂「更多」），底部始终是既有代码的两排；完成后两者合并回两排，新增的排在最前。
  */
 export function FaultMessageFilterView({ onBack }: FaultMessageFilterViewProps) {
   const { bottomInset, isWebPreview, topInset } = useMobileChromeInsets();
@@ -294,7 +384,6 @@ export function FaultMessageFilterView({ onBack }: FaultMessageFilterViewProps) 
   const [codeAreaWidth, setCodeAreaWidth] = useState(0);
   /** 正在用「更多」弹窗查看全部代码的类别。 */
   const [moreGroupId, setMoreGroupId] = useState<FaultMessageFilterGroupId | null>(null);
-  const addedSeq = useRef(0);
 
   const startEditing = (groupId: FaultMessageFilterGroupId) => {
     setEditingGroupId(groupId);
@@ -307,26 +396,28 @@ export function FaultMessageFilterView({ onBack }: FaultMessageFilterViewProps) 
     setInputFocused(false);
   };
 
-  const trimmedDraft = draftCode.trim();
-  const canAdd = trimmedDraft.length > 0;
-
+  /**
+   * 新增一个故障代码。
+   *
+   * 「读已有列表 → 去重 → 追加」整段必须在状态更新函数里完成，不能先从渲染闭包取
+   * `addedCodes` 再拼接：React 会把同一批次里的多次更新合并，闭包里拿到的还是这批
+   * 更新之前的快照，于是连续快速新增时后一次会用旧列表覆盖前一次，前面刚加进去的
+   * 代码就凭空消失了。
+   */
   const addCode = (groupId: FaultMessageFilterGroupId) => {
-    if (!canAdd) return;
+    const label = draftCode.trim();
+    if (label === '') return;
 
-    const existing = addedCodes[groupId] ?? [];
-    // 设计稿没有定义重复代码的提示态，这里直接忽略重复输入而不臆造错误样式。
-    if (existing.some((code) => code.label === trimmedDraft)) {
-      setDraftCode('');
-      return;
-    }
+    setAddedCodes((previous) => {
+      const existing = previous[groupId] ?? [];
+      // 设计稿没有定义重复代码的提示态，这里直接忽略重复输入而不臆造错误样式。
+      if (existing.some((code) => code.label === label)) return previous;
 
-    addedSeq.current += 1;
-    const added: FaultCodeItem = {
-      id: `${groupId}-added-${addedSeq.current}`,
-      label: trimmedDraft,
-    };
-    // 「新增的故障代码始终在最前面」，多个新增之间按最近添加优先。
-    setAddedCodes((previous) => ({ ...previous, [groupId]: [added, ...existing] }));
+      // 同一类别内代码不重复，标签本身即稳定标识，不需要额外的自增序号。
+      const added: FaultCodeItem = { id: `${groupId}-added-${label}`, label };
+      // 「新增的故障代码始终在最前面」，多个新增之间按最近添加优先。
+      return { ...previous, [groupId]: [added, ...existing] };
+    });
     setDraftCode('');
   };
 
@@ -380,13 +471,12 @@ export function FaultMessageFilterView({ onBack }: FaultMessageFilterViewProps) 
         {filterGroups.map((group) => {
           const editing = editingGroupId === group.id;
           const added = addedCodes[group.id] ?? [];
-          // 新增代码始终排在最前面，再按可用宽度排进最多两排。
-          const codeRows = layoutCodeRows(
-            [
-              ...added.map((code) => ({ ...code, added: true })),
-              ...group.codes.map((code) => ({ ...code, added: false })),
-            ],
-            codeAreaWidth > 0 ? codeAreaWidth : CODE_AREA_BASELINE_WIDTH,
+          const codeRowSpecs = buildCodeRowSpecs(
+            added,
+            group.codes,
+            codeAreaWidth > 0
+              ? Math.min(codeAreaWidth, CODE_AREA_BASELINE_WIDTH)
+              : CODE_AREA_BASELINE_WIDTH,
             editing,
           );
 
@@ -470,9 +560,8 @@ export function FaultMessageFilterView({ onBack }: FaultMessageFilterViewProps) 
                 }}
                 style={[styles.codeArea, editing && styles.codeAreaEditing]}
               >
-                {codeRows.map((row, rowIndex) => (
-                  // 排是位置性的，序号即稳定标识；代码本身仍用自己的 id 作 key。
-                  <View key={`row-${rowIndex}`} style={styles.codeRow}>
+                {codeRowSpecs.map((row) => (
+                  <View key={row.id} style={styles.codeRow}>
                     <View style={styles.codeRowFill}>
                       {/**
                        * 新增代码用 Tag 的 `theme=primary` + `variant=light`（品牌浅底 +
@@ -483,7 +572,7 @@ export function FaultMessageFilterView({ onBack }: FaultMessageFilterViewProps) 
                        * 降一档到 `text-color-secondary`。设计稿里这些实例给的是 disabled 态，
                        * 已与设计确认改掉：代码是正常的展示内容，不是不可用项。
                        */}
-                      {row.map((code) => (
+                      {row.items.map((code) => (
                         code.added ? (
                           editing ? (
                             <Tag
@@ -513,7 +602,7 @@ export function FaultMessageFilterView({ onBack }: FaultMessageFilterViewProps) 
                      * 这里用 Pressable 自行组合，几何与配色都复用 Tag `size=large` 的
                      * `theme=default` + `variant=light` 常态，与同排代码胶囊保持一致。
                      */}
-                    {rowIndex === codeRows.length - 1 ? (
+                    {row.withMoreEntry ? (
                       <Pressable
                         accessibilityHint={`查看${group.title}的全部故障代码`}
                         accessibilityLabel="更多"
