@@ -39,7 +39,11 @@ export type DialogAction = {
 
 export type DialogFooter =
   | {
-      buttonLayout: 'vertical';
+      /**
+       * 双按钮的排列方向。`vertical`（节点 `27360:21892`）确认在上、取消在下；
+       * `horizontal`（节点 `27360:21894`）取消在左、确认在右，两个按钮等宽。
+       */
+      buttonLayout: 'horizontal' | 'vertical';
       buttonTheme: 'base';
       cancel: DialogAction;
       confirm: DialogAction;
@@ -120,6 +124,26 @@ export function Dialog({
 
   const hasContent = shown.children != null;
   const hasFooter = shown.footer != null;
+  const horizontalFooter = shown.footer?.buttonLayout === 'horizontal';
+  /**
+   * footer 按钮的渲染顺序由 Figma 变体决定：`vertical`（`27360:21892`）确认在上、
+   * 取消在下；`horizontal`（`27360:21894`）取消在左、确认在右。顺序相反，所以按
+   * 布局组装而不是写死。
+   */
+  const footerButtons: readonly { action: DialogAction; role: 'cancel' | 'confirm' }[] =
+    shown.footer === undefined
+      ? []
+      : shown.footer.cancel === undefined
+        ? [{ action: shown.footer.confirm, role: 'confirm' }]
+        : horizontalFooter
+          ? [
+            { action: shown.footer.cancel, role: 'cancel' },
+            { action: shown.footer.confirm, role: 'confirm' },
+          ]
+          : [
+            { action: shown.footer.confirm, role: 'confirm' },
+            { action: shown.footer.cancel, role: 'cancel' },
+          ];
   const confirmButtonRef = useRef<View>(null);
   const titleRef = useRef<Text>(null);
 
@@ -239,26 +263,31 @@ export function Dialog({
             />
           ) : null}
           {shown.footer ? (
-            <View style={styles.footer}>
-              <Pressable
-                accessibilityHint={shown.footer.confirm.accessibilityHint}
-                accessibilityRole="button"
-                onPress={shown.footer.confirm.onPress}
-                ref={confirmButtonRef}
-                style={({ pressed }) => [styles.footerButton, styles.confirmButton, pressed && styles.pressed]}
-              >
-                <Text style={[styles.footerButtonText, styles.confirmButtonText]}>{shown.footer.confirm.label}</Text>
-              </Pressable>
-              {shown.footer.cancel ? (
+            <View style={[styles.footer, horizontalFooter && styles.footerHorizontal]}>
+              {footerButtons.map(({ action, role }) => (
                 <Pressable
-                  accessibilityHint={shown.footer.cancel.accessibilityHint}
+                  accessibilityHint={action.accessibilityHint}
                   accessibilityRole="button"
-                  onPress={shown.footer.cancel.onPress}
-                  style={({ pressed }) => [styles.footerButton, styles.cancelButton, pressed && styles.pressed]}
+                  key={role}
+                  onPress={action.onPress}
+                  ref={role === 'confirm' ? confirmButtonRef : undefined}
+                  style={({ pressed }) => [
+                    styles.footerButton,
+                    role === 'confirm' ? styles.confirmButton : styles.cancelButton,
+                    horizontalFooter && styles.footerButtonHorizontal,
+                    pressed && styles.pressed,
+                  ]}
                 >
-                  <Text style={[styles.footerButtonText, styles.cancelButtonText]}>{shown.footer.cancel.label}</Text>
+                  <Text
+                    style={[
+                      styles.footerButtonText,
+                      role === 'confirm' ? styles.confirmButtonText : styles.cancelButtonText,
+                    ]}
+                  >
+                    {action.label}
+                  </Text>
                 </Pressable>
-              ) : null}
+              ))}
             </View>
           ) : null}
         </View>
@@ -362,6 +391,16 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 24,
     backgroundColor: colors.background.container,
+  },
+  /** `button-layout=horizontal`（节点 `27360:21894`）：同样的 `24` 内边距与 `12` 间距，改为横向。 */
+  footerHorizontal: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  /** 横向排列时两个按钮等宽分配剩余宽度。 */
+  footerButtonHorizontal: {
+    minWidth: 0,
+    flex: 1,
   },
   footerButton: {
     minHeight: 40,

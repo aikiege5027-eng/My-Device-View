@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 
+import DeleteIcon from '../assets/delete.svg';
 import BackChevron from '../assets/project-back.svg';
 import {
   BottomSheet,
@@ -90,6 +91,13 @@ const BACK_ICON_SIZE = 24;
  */
 const RESOURCE_HIT_SLOP = { bottom: 8, left: 16, right: 16, top: 8 };
 /**
+ * 行尾删除入口。图形取 Icon 规范的 `delete`（Design Token China `612:947`）基准
+ * `16×16`，与 `Body 14/22` 的文件名同级；视觉尺寸不等于热区，用 hitSlop 吃满行距
+ * 并向右补到页面边距，使其达到平台最小触控尺寸。
+ */
+const RESOURCE_DELETE_ICON_SIZE = 16;
+const RESOURCE_DELETE_HIT_SLOP = { bottom: 8, left: 12, right: 16, top: 8 };
+/**
  * 悬浮按钮与屏幕右下角的间距。Fab 节点只定义按钮本体，没有定义页面内的吸附位置，
  * 这里沿用本页 `16` 的横向边距节奏，底部再让开安全区。
  */
@@ -116,6 +124,13 @@ export function HelpCenterView({ onBack, onOpenResource }: HelpCenterViewProps) 
   const [category, setCategory] = useState<HelpCenterCategoryId>('overview');
   const [resources, setResources] = useState(initialResources);
   const [flow, setFlow] = useState<UploadFlow>({ step: 'idle' });
+  /**
+   * 待确认删除的文件。连同所属分类一起记下来：确认时按这份快照删，不去读渲染闭包里
+   * 的当前分类，避免分类切换后删错列表。
+   */
+  const [pendingDeletion, setPendingDeletion] = useState<
+    { category: HelpCenterCategoryId; resource: HelpResource } | null
+  >(null);
   /** Picker 滚动过程中的临时选择，Confirm 前不提交。 */
   const [draftUploadCategory, setDraftUploadCategory] = useState<HelpCenterCategoryId>('overview');
   const uploadSeq = useRef(0);
@@ -154,6 +169,16 @@ export function HelpCenterView({ onBack, onOpenResource }: HelpCenterViewProps) 
 
     return () => clearTimeout(tickTimer);
   }, [flow]);
+
+  const confirmDeletion = () => {
+    if (pendingDeletion === null) return;
+    const { category: target, resource } = pendingDeletion;
+    setResources((previous) => ({
+      ...previous,
+      [target]: previous[target].filter((item) => item.id !== resource.id),
+    }));
+    setPendingDeletion(null);
+  };
 
   const openUploadPicker = () => {
     // 默认落在当前正在浏览的分类上。
@@ -202,16 +227,39 @@ export function HelpCenterView({ onBack, onOpenResource }: HelpCenterViewProps) 
           style={styles.resourcePane}
         >
           {visibleResources.map((resource) => (
-            <Pressable
-              accessibilityHint="打开该文件"
-              accessibilityRole="link"
-              hitSlop={RESOURCE_HIT_SLOP}
-              key={resource.id}
-              onPress={() => onOpenResource({ category, name: resource.name })}
-              style={styles.resourceRow}
-            >
-              <Text style={styles.resourceName}>{resource.name}</Text>
-            </Pressable>
+            <View key={resource.id} style={styles.resourceRow}>
+              <Pressable
+                accessibilityHint="打开该文件"
+                accessibilityRole="link"
+                hitSlop={RESOURCE_HIT_SLOP}
+                onPress={() => onOpenResource({ category, name: resource.name })}
+                style={styles.resourceLink}
+              >
+                <Text numberOfLines={1} style={styles.resourceName}>{resource.name}</Text>
+              </Pressable>
+              {/**
+               * 行尾删除入口。设计稿当前只定义了文件链接，没有这个图标，因此图形取
+               * Icon 规范里的 `delete`（Design Token China `612:947`，`16×16`），颜色
+               * 映射到 `text-color-secondary`，并与链接分成两个独立的可按压区域，
+               * 避免嵌套 Pressable 时点击归属不明。
+               */}
+              <Pressable
+                accessibilityHint="删除该文件"
+                accessibilityLabel={`删除 ${resource.name}`}
+                accessibilityRole="button"
+                hitSlop={RESOURCE_DELETE_HIT_SLOP}
+                onPress={() => setPendingDeletion({ category, resource })}
+                style={({ pressed }) => [styles.resourceDelete, pressed && styles.resourceDeletePressed]}
+              >
+                <DeleteIcon
+                  accessibilityElementsHidden
+                  color={colors.text.secondary}
+                  height={RESOURCE_DELETE_ICON_SIZE}
+                  importantForAccessibility="no-hide-descendants"
+                  width={RESOURCE_DELETE_ICON_SIZE}
+                />
+              </Pressable>
+            </View>
           ))}
         </ScrollView>
       </View>
@@ -251,6 +299,26 @@ export function HelpCenterView({ onBack, onOpenResource }: HelpCenterViewProps) 
         {/* Picker 面板不含安全区，用同底色的留白把白底延伸到 Home Indicator。 */}
         <View style={[styles.sheetSafeArea, { height: bottomInset }]} />
       </BottomSheet>
+
+      {/*
+        删除确认。删除不可撤销，所以用 Dialog 已定义的「横向双按钮」变体
+        （Figma `27360:21894`，取消在左、确认在右）先确认一次，而不是点一下图标就直接删掉。
+      */}
+      <Dialog
+        description={pendingDeletion === null
+          ? undefined
+          : `删除后「${pendingDeletion.resource.name}」将不再出现在${categoryLabelOf(pendingDeletion.category)}中。`}
+        footer={{
+          buttonLayout: 'horizontal',
+          buttonTheme: 'base',
+          cancel: { label: '取消', onPress: () => setPendingDeletion(null) },
+          confirm: { label: '删除', onPress: confirmDeletion },
+        }}
+        onClose={() => setPendingDeletion(null)}
+        showCloseButton={false}
+        title="删除文件"
+        visible={pendingDeletion !== null}
+      />
 
       {/*
         第 3 步：上传进度。参照远程呼梯的进程页（Figma `19721:216005` / `19721:216020`）：
@@ -343,9 +411,14 @@ const styles = StyleSheet.create({
   resourcePane: { minWidth: 0, flex: 1 },
   /** Figma：链接块左 128（侧边栏右侧留 25）、右边距 16、距面板顶 21、行距 16。 */
   resourceList: { gap: 16, paddingLeft: 25, paddingRight: 16, paddingTop: 21, paddingBottom: 24 },
+  /** 文件名占满剩余宽度，删除入口固定收在行尾。 */
+  resourceRow: { alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', gap: 8 },
   /** 与设计系统 Link 一致：Figma 未定义链接按压态，这里同样不自行补视觉反馈。 */
-  resourceRow: { alignSelf: 'stretch' },
+  resourceLink: { minWidth: 0, flex: 1 },
   resourceName: { color: colors.text.link, ...typographyTokens.body14Medium },
+  resourceDelete: { alignItems: 'center', justifyContent: 'center' },
+  /** 设计稿未定义该图标的按压态，沿用项目既有的压暗反馈。 */
+  resourceDeletePressed: { opacity: 0.72 },
   fab: { position: 'absolute', right: FAB_INSET },
   sheetSafeArea: { backgroundColor: colors.background.container },
   /** 远程呼梯进程页的内容块为 `gap 8`、内容居中。 */

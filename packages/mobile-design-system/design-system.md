@@ -572,8 +572,11 @@ Figma file keys：
 | footer 变体 | Figma 节点 | 代码已实现 |
 | --- | --- | --- |
 | `confirm-btn=true, cancel-btn=true, button-layout=vertical, button-theme=base` | `27360:21892` | 已实现 |
+| `confirm-btn=true, cancel-btn=true, button-layout=horizontal, button-theme=base` | `27360:21894` | 已实现 |
 | `confirm-btn=true, cancel-btn=false, button-theme=base` | `27360:21891` | 已实现 |
-| `button-layout=horizontal`、仅 `cancel-btn=true`、`button-theme=text`、两个按钮都隐藏 | `27360:21894` / `27360:21889` / `27360:21890` 等 | 未实现 |
+| 仅 `cancel-btn=true`、`button-theme=text`、两个按钮都隐藏 | `27360:21889` / `27360:21890` 等 | 未实现 |
+
+- 双按钮两种布局的**顺序相反**：`vertical` 确认在上、取消在下；`horizontal` 取消在左、确认在右，两个按钮等宽分配剩余宽度（`flex:1`），间距与内边距同为 `12` / `24`。实现按布局组装渲染顺序，不得写死。
 
 - 单按钮变体 footer 高 `88`（`24` 内边距 + `40` 按钮 + `24` 内边距），按钮占满内容宽度，Figma 中没有 `button-layout` 轴。
 - 两个已实现变体用判别联合区分：双按钮必须同时提供 `buttonLayout: 'vertical'`、`cancel` 与 `confirm`；单按钮只提供 `confirm`，类型上不接受 `buttonLayout` 和 `cancel`。
