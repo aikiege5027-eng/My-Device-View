@@ -1198,6 +1198,12 @@ function DeviceView({
 const SCREENSHOT_TARGET_ID = 'app-screenshot-target';
 
 /**
+ * 页面截图工具只在本地开发版保留。线上发布（`build:pages`）会设置
+ * `EXPO_PUBLIC_HIDE_SCREENSHOT_TOOL=1`，此时不渲染该组件。
+ */
+const SHOW_SCREENSHOT_TOOL = process.env.EXPO_PUBLIC_HIDE_SCREENSHOT_TOOL !== '1';
+
+/**
  * 工单明细页的取色。该页出自 China-KFM（file key `Z4pnn8wEnk6D7pu11DBXKd`），用的是
  * 该文件自己的 `Light/Gray` 色阶，和共享设计系统（China Design System for Mobile）
  * 的 `text` / `background` 语义族不同源，包里没有对应 token，因此在页面侧按 Figma
@@ -1326,10 +1332,12 @@ export default function App() {
         title={placeholderTitle ?? ''}
         visible={placeholderTitle !== null}
       />
-      <WebScreenshotTool
-        fileName={`remote-elevator-${screen}-full@3x.png`}
-        targetId={SCREENSHOT_TARGET_ID}
-      />
+      {SHOW_SCREENSHOT_TOOL ? (
+        <WebScreenshotTool
+          fileName={`remote-elevator-${screen}-full@3x.png`}
+          targetId={SCREENSHOT_TARGET_ID}
+        />
+      ) : null}
     </SafeAreaProvider>
   );
 }

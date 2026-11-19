@@ -7,7 +7,7 @@
     "start": "expo start",
     "web": "expo start --web",
     "build:web": "expo export --platform web --output-dir dist && node scripts/prepare-sites-build.mjs",
-    "build:pages": "expo export --platform web --output-dir dist && GITHUB_PAGES_BASE_PATH=My-Device-View node scripts/prepare-github-pages.mjs",
+    "build:pages": "EXPO_PUBLIC_HIDE_SCREENSHOT_TOOL=1 expo export --platform web --output-dir dist --clear && GITHUB_PAGES_BASE_PATH=My-Device-View node scripts/prepare-github-pages.mjs",
     "build:design-system": "pnpm --filter @kone/mobile-design-system build",
     "ios": "expo start --ios",
     "android": "expo start --android",
