@@ -156,11 +156,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: CAUSE_BLOCK_BACKGROUND,
   },
-  sectionTitle: { color: colors.text.primary, ...typographyTokens.body14Semibold },
+  sectionTitle: { color: colors.text.primary, ...typographyTokens.body14Medium },
   /** 引用样式：左侧一条与整段等高的细竖线。 */
   evidenceQuote: { paddingLeft: 8, borderLeftWidth: 1, borderLeftColor: colors.border.componentStroke },
-  evidenceLabel: { color: colors.text.secondary, ...typographyTokens.footer12Semibold },
-  evidenceText: { color: colors.text.secondary, ...typographyTokens.footer12Regular },
+  evidenceLabel: { color: colors.text.secondary, ...typographyTokens.body14Medium },
+  evidenceText: { color: colors.text.secondary, ...typographyTokens.body14Regular },
   /** 与卡片标题同一行，靠右。 */
   confidenceTag: {
     marginLeft: 'auto',

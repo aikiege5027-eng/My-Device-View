@@ -1249,7 +1249,7 @@ const undesignedMoreActionTitles: Record<
 };
 
 export default function App() {
-  const [screen, setScreen] = useState<'workOrder' | 'device' | 'home' | 'moreActions' | 'helpCenter' | 'faultMessageFilter'>('home');
+  const [screen, setScreen] = useState<'workOrder' | 'device' | 'home' | 'moreActions' | 'helpCenter' | 'faultMessageFilter'>('workOrder');
   const [deviceType, setDeviceType] = useState<DeviceType>('KCECPUC');
   const [placeholderTitle, setPlaceholderTitle] = useState<string | null>(null);
   const [selectedProject, setSelectedProject] = useState<ProjectDetailsProject | null>(null);
