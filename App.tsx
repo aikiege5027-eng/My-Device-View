@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   AccessibilityInfo,
   findNodeHandle,
@@ -798,6 +799,10 @@ function DeviceView({
   );
   const [deviceBackDemoVisible, setDeviceBackDemoVisible] = useState(false);
   const cloudDataTitleRef = useRef<Text>(null);
+  const dataScrollRef = useRef<ScrollView>(null);
+  // 呼梯结果确认后，模拟 AI 重新分析的刷新态：遮住内容，回到顶部后再露出新结果。
+  const [aiRefreshing, setAiRefreshing] = useState(false);
+  const aiRefreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const deviceDetailsBackRef = useRef<View>(null);
   const pendingPageFocus = useRef<'detail' | 'projectDetails' | 'exportReportSettings' | null>(
     project ? 'projectDetails' : null,
@@ -818,6 +823,7 @@ function DeviceView({
     if (restartTimer.current) clearInterval(restartTimer.current);
     if (liftLimitResetTimer.current) clearTimeout(liftLimitResetTimer.current);
     if (restartLimitResetTimer.current) clearTimeout(restartLimitResetTimer.current);
+    if (aiRefreshTimer.current) clearTimeout(aiRefreshTimer.current);
   }, []);
 
   useEffect(() => {
@@ -906,6 +912,15 @@ function DeviceView({
     }, ...current]);
     setRestartEnabled(true);
     setLiftDialog('hidden');
+    // 呼梯结果会改变 AI 分析内容：先显示刷新态遮住页面，遮住期间瞬间回到顶部，
+    // 刷新结束后第一眼看到更新后的 AI分析结果，避免可见的向上滑动。
+    setAiRefreshing(true);
+    dataScrollRef.current?.scrollTo({ y: 0, animated: false });
+    if (aiRefreshTimer.current) clearTimeout(aiRefreshTimer.current);
+    aiRefreshTimer.current = setTimeout(() => {
+      aiRefreshTimer.current = null;
+      setAiRefreshing(false);
+    }, AI_REFRESH_MS);
   };
 
   const selectScenario = (scenario: LiftScenario) => {
@@ -1175,25 +1190,37 @@ function DeviceView({
           <Text style={styles.debugDescription}>门锁回路瞬时断开，轿厢停于非平层</Text>
         </View>
 
-        <ScrollView
-          contentContainerStyle={styles.dataScrollContent}
-          showsVerticalScrollIndicator={false}
-          style={styles.dataScroll}
-        >
-          <AiAnalysisCard
-            canRestart={deviceType === 'KCECPUC'}
-            liftResult={records.find((record) => record.type === 'lift')?.result ?? null}
-          />
-          <RealtimeContent />
-          <AiEventTimeline />
-          <OperationRecordsContent records={records} />
-        </ScrollView>
+        <View style={styles.dataScrollWrap}>
+          <ScrollView
+            ref={dataScrollRef}
+            contentContainerStyle={styles.dataScrollContent}
+            showsVerticalScrollIndicator={false}
+            style={styles.dataScroll}
+          >
+            <AiAnalysisCard
+              canRestart={deviceType === 'KCECPUC'}
+              liftResult={records.find((record) => record.type === 'lift')?.result ?? null}
+            />
+            <RealtimeContent />
+            <AiEventTimeline />
+            <OperationRecordsContent records={records} />
+          </ScrollView>
+          {aiRefreshing ? (
+            <View accessibilityLiveRegion="polite" accessibilityLabel="AI 正在重新分析" style={styles.aiRefreshOverlay}>
+              <ActivityIndicator color={colorThemes.light.brand.default} />
+              <Text style={styles.aiRefreshText}>AI 正在重新分析…</Text>
+            </View>
+          ) : null}
+        </View>
       </PageTemplate>
 
       {actionDialogs}
     </>
   );
 }
+
+/** 模拟 AI 重新分析的刷新时长。 */
+const AI_REFRESH_MS = 1200;
 
 const SCREENSHOT_TARGET_ID = 'app-screenshot-target';
 
@@ -1358,6 +1385,9 @@ const styles = StyleSheet.create({
   controllerTag: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, backgroundColor: LIGHT_BLUE },
   controllerTagText: { color: BLUE, fontSize: 12, lineHeight: 20, fontWeight: '500' },
   debugDescription: { color: '#141414', fontSize: 14, lineHeight: 22 },
+  dataScrollWrap: { flex: 1, minHeight: 0 },
+  aiRefreshOverlay: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', gap: 12, backgroundColor: colorThemes.light.background.page },
+  aiRefreshText: { color: colorThemes.light.text.secondary, ...typographyTokens.body14Regular },
   dataScroll: { flex: 1, backgroundColor: colorThemes.light.background.page },
   dataScrollContent: { flexGrow: 1, gap: dataPanelTokens.cardGap, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 16, backgroundColor: colorThemes.light.background.page },
   scrollContent: { paddingBottom: 102, backgroundColor: BG },
