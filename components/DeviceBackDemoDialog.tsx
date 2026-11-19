@@ -3,6 +3,9 @@ import React from 'react';
 import { Dialog } from '@kone/mobile-design-system';
 
 type DeviceBackDemoDialogProps = {
+  /** 第一个选项的文案与读屏提示，默认返回 AI 故障分析页。 */
+  returnHint?: string;
+  returnLabel?: string;
   onClose: () => void;
   onReturnToCloudData: () => void;
   onReturnToProjectDetails: () => void;
@@ -14,6 +17,8 @@ export function DeviceBackDemoDialog({
   onClose,
   onReturnToCloudData,
   onReturnToProjectDetails,
+  returnHint = '关闭弹窗并显示AI故障分析页',
+  returnLabel = '返回AI故障分析',
   visible,
 }: DeviceBackDemoDialogProps) {
   return (
@@ -24,8 +29,8 @@ export function DeviceBackDemoDialog({
         buttonLayout: 'vertical',
         buttonTheme: 'base',
         confirm: {
-          accessibilityHint: '关闭弹窗并显示云管家数据页',
-          label: '返回云管家数据',
+          accessibilityHint: returnHint,
+          label: returnLabel,
           onPress: onReturnToCloudData,
         },
         cancel: {

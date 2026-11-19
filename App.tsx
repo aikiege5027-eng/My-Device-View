@@ -16,6 +16,11 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import Back from './assets/back.svg';
 import Building from './assets/building.svg';
+import EventChevronRight from './assets/event-chevron-right.svg';
+import KfmChevronDown from './assets/kfm-chevron-down.svg';
+import KfmCloud from './assets/kfm-cloud.svg';
+import KfmElevator from './assets/kfm-elevator.svg';
+import KfmHeadsup from './assets/kfm-headsup.svg';
 import ChevronGray from './assets/chevron-gray.svg';
 import ChevronWhite from './assets/chevron-white.svg';
 import CloseCircleFilled from './assets/close-circle-filled.svg';
@@ -38,13 +43,14 @@ import IotVibrationHorizontal from './assets/iot-vibration-horizontal.svg';
 import IotVibrationLongitudinal from './assets/iot-vibration-longitudinal.svg';
 import IotVibrationVertical from './assets/iot-vibration-vertical.svg';
 import Location from './assets/location.svg';
-import OperationChevron from './assets/operation-chevron.svg';
 import ReportWave from './assets/report-wave.svg';
 import NoticeWarning from './assets/notice-warning.svg';
+import { AiAssistBanner } from './components/AiAssistBanner';
+import { AiAnalysisCard } from './components/AiAnalysisCard';
 import { DataPanelTitle as SectionTitle } from './components/DataPanelTitle';
 import { DeviceBackDemoDialog } from './components/DeviceBackDemoDialog';
 import { DeviceDetailsView } from './components/DeviceDetailsView';
-import { DeviceDynamicsDialog } from './components/DeviceDynamicsDialog';
+import { AiEventTimeline } from './components/AiEventTimeline';
 import { ExportReportSettingsView } from './components/ExportReportSettingsView';
 import { FaultMessageFilterView } from './components/FaultMessageFilterView';
 import { HelpCenterView } from './components/HelpCenterView';
@@ -153,20 +159,6 @@ const machineRoom: Metric[] = [
   { label: '检修回路', value: '402', icon: 'maintenance' },
   { label: '厅门A回路', value: '302', icon: 'doorCircuit', tone: 'error' },
   { label: '厅门B回路', value: '302', icon: 'doorCircuit', tone: 'error' },
-];
-
-type EventSummaryRow = {
-  label: string;
-  beforeWorkOrder: string;
-  afterWorkOrder: string;
-};
-
-const eventSummaryRows: EventSummaryRow[] = [
-  { label: '故障消息', beforeWorkOrder: '0048 × 1', afterWorkOrder: '无新增' },
-  { label: '开关门次数', beforeWorkOrder: '18 次', afterWorkOrder: '12 次' },
-  { label: '内外呼', beforeWorkOrder: '内 6 · 外 8', afterWorkOrder: '内 4 · 外 6' },
-  { label: '楼层变化', beforeWorkOrder: '6F → 10F', afterWorkOrder: '10F → 10F' },
-  { label: '载重变化', beforeWorkOrder: '120 → 368kg', afterWorkOrder: '368 → 286kg' },
 ];
 
 type MetricVariant = 'realtime' | 'sensor';
@@ -350,60 +342,6 @@ function RealtimeContent() {
           <ChevronGray width={10} height={6} />
         </View>
       </Pressable>
-    </View>
-  );
-}
-
-function EventSummaryContent({ onOpenDeviceDynamics }: { onOpenDeviceDynamics: () => void }) {
-  return (
-    <View style={styles.dataPanel}>
-      <View style={styles.eventSummaryHeading}>
-        <SectionTitle
-          action={(
-            <Pressable
-              accessibilityLabel="查看设备动态"
-              accessibilityRole="link"
-              hitSlop={8}
-              onPress={onOpenDeviceDynamics}
-              style={({ pressed }) => [styles.deviceDynamicsEntry, pressed && styles.pressed]}
-            >
-              <Text style={styles.deviceDynamicsEntryText}>查看设备动态</Text>
-            </Pressable>
-          )}
-        >
-          AI事件汇总
-        </SectionTitle>
-        <Text style={styles.eventSummaryDescription}>该数据统计截止至当前页面打开时。</Text>
-      </View>
-      <View accessibilityLabel="AI事件汇总表格" style={styles.eventSummaryTable}>
-        <View style={styles.eventSummaryRow}>
-          <View style={[styles.eventSummaryCell, styles.eventSummaryLabelColumn, styles.eventSummaryHeaderCell, styles.eventSummaryLabelCell]}>
-            <Text style={[styles.eventSummaryHeaderText, styles.eventSummaryLabelText]}>数据项</Text>
-          </View>
-          <View style={[styles.eventSummaryCell, styles.eventSummaryValueColumn, styles.eventSummaryHeaderCell]}>
-            <Text style={styles.eventSummaryHeaderText}>工单前 30min{`\n`}16:16–16:46</Text>
-          </View>
-          <View style={[styles.eventSummaryCell, styles.eventSummaryValueColumn, styles.eventSummaryHeaderCell]}>
-            <Text style={styles.eventSummaryHeaderText}>工单后至打开{`\n`}16:46–17:18</Text>
-          </View>
-        </View>
-        {eventSummaryRows.map((row, index) => (
-          <View
-            key={row.label}
-            style={[styles.eventSummaryRow, styles.eventSummaryBodyRow, index % 2 === 1 && styles.eventSummaryAlternateRow]}
-          >
-            <View style={[styles.eventSummaryCell, styles.eventSummaryLabelColumn, styles.eventSummaryBodyCell, styles.eventSummaryLabelCell]}>
-              <Text style={[styles.eventSummaryBodyText, styles.eventSummaryLabelText]}>{row.label}</Text>
-            </View>
-            <View style={[styles.eventSummaryCell, styles.eventSummaryValueColumn, styles.eventSummaryBodyCell]}>
-              <Text style={[styles.eventSummaryBodyText, styles.eventSummaryValueText]}>{row.beforeWorkOrder}</Text>
-            </View>
-            <View style={[styles.eventSummaryCell, styles.eventSummaryValueColumn, styles.eventSummaryBodyCell]}>
-              <Text style={[styles.eventSummaryBodyText, styles.eventSummaryValueText]}>{row.afterWorkOrder}</Text>
-            </View>
-          </View>
-        ))}
-      </View>
     </View>
   );
 }
@@ -674,14 +612,14 @@ function RestartFlowDialog({
   );
 }
 
-function WorkOrderView({ onOpenDevice }: { onOpenDevice: (deviceType: DeviceType) => void }) {
-  const [cloudDialogMode, setCloudDialogMode] = useState<'hidden' | 'prompt' | 'deviceType'>('hidden');
-
-  const closeCloudDialog = () => setCloudDialogMode('hidden');
-  const openDevice = (deviceType: DeviceType) => {
-    closeCloudDialog();
-    onOpenDevice(deviceType);
-  };
+function WorkOrderView({
+  onOpenDevice,
+  onOpenDeviceDetails,
+}: {
+  onOpenDevice: (deviceType: DeviceType) => void;
+  onOpenDeviceDetails: () => void;
+}) {
+  const [orderInfoExpanded, setOrderInfoExpanded] = useState(false);
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.workOrderSafeArea}>
@@ -689,43 +627,83 @@ function WorkOrderView({ onOpenDevice }: { onOpenDevice: (deviceType: DeviceType
       <View style={styles.workOrderNav}>
         <Back width={10} height={17} style={styles.workOrderBack} />
         <Text style={styles.workOrderTitle}>工单明细</Text>
-        <Text style={styles.workOrderMore}>更多</Text>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.workOrderScroll}>
+        {/*
+          「AI辅助远程设备调试」入口置顶，胶囊横幅样式。点击后直接进入「AI故障分析」页
+          （设备类型默认 KCECPUC，不再经过确认弹窗和设备类型选择）。
+        */}
+        <AiAssistBanner
+          onPress={() => onOpenDevice('KCECPUC')}
+          title="去现场之前，试试先用AI分析和远程调试。"
+        />
         <View style={styles.workOrderCard}>
           <View style={styles.orderHeading}>
-            <View style={styles.orderElevatorIcon}><Elevator width={22} height={22} /></View>
+            <View style={styles.orderElevatorIcon}>
+              <KfmElevator color={KFM.gray5} width={40} height={40} />
+            </View>
             <View style={styles.orderHeadingText}>
               <Text style={styles.orderName}>B7号L6 | 43467562</Text>
               <Text style={styles.orderProject}>项目名称：宜家花园</Text>
               <View style={styles.pendingTag}><Text style={styles.pendingTagText}>未处理</Text></View>
             </View>
           </View>
+
           <View style={styles.workOrderDivider} />
-          <View style={styles.orderInfoRow}><Text style={styles.orderLabel}>工单编号</Text><Text style={styles.orderValue}>NMT29394030204232 <Text style={styles.copyText}>复制</Text></Text></View>
-          <View style={styles.orderInfoRow}><Text style={styles.orderLabel}>96333编号</Text><Text style={styles.orderValue}>238402</Text></View>
-          <Text style={styles.orderLink}>查看更多⌄</Text>
+
+          <View style={styles.orderInfoList}>
+            <View style={styles.orderInfoRow}>
+              <Text style={styles.orderLabel}>工单编号</Text>
+              <Text style={styles.orderValue}>NMT29394030204232 | <Text style={styles.copyText}>复制</Text></Text>
+            </View>
+            <View style={styles.orderInfoRow}>
+              <Text style={styles.orderLabel}>96333编号</Text>
+              <Text style={styles.orderValue}>238402</Text>
+            </View>
+            {/* 展开态的补充字段，Figma `2178:33143`（设备卡片展开）。 */}
+            {orderInfoExpanded ? orderExtraInfo.map(({ label, value }) => (
+              <View key={label} style={styles.orderInfoRow}>
+                <Text style={styles.orderLabel}>{label}</Text>
+                <Text numberOfLines={1} style={styles.orderValue}>{value}</Text>
+              </View>
+            )) : null}
+          </View>
+
+          {/* 展开/收起入口居中，chevron 展开后翻转（Figma `2178:33170` 的 `-scale-y-100`）。 */}
+          <Pressable
+            accessibilityLabel={orderInfoExpanded ? '收起更多' : '查看更多'}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: orderInfoExpanded }}
+            hitSlop={8}
+            onPress={() => setOrderInfoExpanded((current) => !current)}
+            style={styles.orderMoreToggle}
+          >
+            <Text style={styles.orderMoreLabel}>{orderInfoExpanded ? '收起更多' : '查看更多'}</Text>
+            <View style={orderInfoExpanded ? styles.orderMoreIconUp : undefined}>
+              <KfmChevronDown color={KFM.gray8} width={16} height={16} />
+            </View>
+          </Pressable>
         </View>
 
-        <View style={styles.workOrderCard}>
-          <Text style={styles.faultTitle}>故障信息</Text>
-          <View style={styles.dateRow}>{['21日', '22日', '23日', '24日', '25日', '保养', '27日'].map((date) => <Text key={date} style={[styles.dateText, date === '保养' && styles.dateMaintenance]}>{date}</Text>)}</View>
-          <View style={styles.dateMarker} />
-          <Text style={styles.floorText}>10楼</Text>
-          <Text style={styles.orderLink}>查看更多⌄</Text>
-        </View>
-
-        <Pressable accessibilityRole="button" onPress={() => setCloudDialogMode('prompt')} style={({ pressed }) => [styles.remotePrompt, pressed && styles.pressed]}>
-          <View style={styles.cloudGlyph}><Text style={styles.cloudGlyphText}>⌁</Text></View>
-          <Text style={styles.remotePromptText}>别急着接单，先点这里远程瞅一眼，省得白跑一趟!</Text>
-          <View style={styles.alertDot} />
-          <Text style={styles.remoteChevron}>›</Text>
+        {/*
+          云管家入口。该行只在 IoT 变体里定义（Figma `20141:26924`，原文案为
+          `查看云管家数据，帮助快速修梯`，现简化为「查看云管家数据」），用户给的非 IoT 稿里没有这一行。
+          点击后直接进入设备详情；进入「AI故障分析」的路径改由页面顶部的
+          「AI辅助远程设备调试」横幅承接。
+        */}
+        <Pressable accessibilityRole="button" onPress={onOpenDeviceDetails} style={({ pressed }) => [styles.remotePrompt, pressed && styles.pressed]}>
+          <KfmCloud color={KFM.blue} width={16} height={16} />
+          <Text style={styles.remotePromptText}>查看云管家数据</Text>
+          <EventChevronRight color={KFM.gray8} width={16} height={16} />
         </Pressable>
 
+
+        {/* 工单进度（Figma `2079:23588` Step）：蓝色圆点 + 状态与时间同为品牌色。 */}
         <View style={styles.statusCard}>
-          <View style={styles.statusGlyph}><Text style={styles.statusGlyphText}>⌕</Text></View>
-          <View style={styles.statusCopy}><Text style={styles.statusTitle}>已报修 <Text style={styles.statusTime}>2021-11-16 16:46:31</Text></Text><Text style={styles.statusDetail}>保修内容：电梯厅门损坏了</Text></View>
+          <View style={styles.statusGlyph}><KfmHeadsup color="#FFFFFF" width={12} height={12} /></View>
+          <Text style={styles.statusTitle}>已报修</Text>
+          <Text style={styles.statusTime}>2021-11-16 16:46:31</Text>
         </View>
       </ScrollView>
 
@@ -735,44 +713,6 @@ function WorkOrderView({ onOpenDevice }: { onOpenDevice: (deviceType: DeviceType
         <Pressable style={[styles.workOrderBottomButton, styles.acceptButton]}><Text style={styles.acceptText}>接受</Text></Pressable>
       </View>
 
-      <Modal transparent visible={cloudDialogMode !== 'hidden'} animationType="fade" statusBarTranslucent onRequestClose={closeCloudDialog}>
-        <View style={styles.modalBackdrop}>
-          {cloudDialogMode === 'prompt' ? (
-            <View style={styles.cloudDialogCard}>
-              <View style={styles.cloudDialogContent}>
-                <Text style={styles.cloudDialogTitle}>查看云管家数据</Text>
-                <Text style={styles.cloudDialogBody}>为了帮助您核实工单，请先查看云管家</Text>
-              </View>
-              <View style={styles.cloudDialogFooter}>
-                <Pressable onPress={closeCloudDialog} style={styles.cloudDialogFooterButton}><Text style={styles.cloudCancelText}>取消</Text></Pressable>
-                <View style={styles.cloudDialogFooterDivider} />
-                <Pressable onPress={() => setCloudDialogMode('deviceType')} style={styles.cloudDialogFooterButton}><Text style={styles.cloudOpenText}>查看云管家</Text></Pressable>
-              </View>
-            </View>
-          ) : (
-            <View style={styles.dialogCard}>
-              <View style={styles.dialogContent}>
-                <Text style={styles.dialogTitle}>选择设备类型</Text>
-                <Text style={styles.scenarioDialogBody}>请选择本次 Demo 要进入的设备详情</Text>
-              </View>
-              <View style={styles.scenarioOptions}>
-                <Pressable onPress={() => openDevice('KCECPUC')} style={({ pressed }) => [styles.scenarioOption, pressed && styles.pressed]}>
-                  <View style={[styles.deviceTypeIcon, styles.deviceTypeKceIcon]}><Text style={styles.deviceTypeKceMark}>K</Text></View>
-                  <View style={styles.scenarioCopy}><Text style={styles.scenarioTitle}>KCECPUC</Text><Text style={styles.scenarioDescription}>支持远程呼梯与远程重启</Text></View>
-                  <Text style={styles.scenarioChevron}>›</Text>
-                </Pressable>
-                <View style={styles.scenarioDivider} />
-                <Pressable onPress={() => openDevice('LCE')} style={({ pressed }) => [styles.scenarioOption, pressed && styles.pressed]}>
-                  <View style={[styles.deviceTypeIcon, styles.deviceTypeLceIcon]}><Text style={styles.deviceTypeLceMark}>L</Text></View>
-                  <View style={styles.scenarioCopy}><Text style={styles.scenarioTitle}>LCE</Text><Text style={styles.scenarioDescription}>仅支持远程呼梯</Text></View>
-                  <Text style={styles.scenarioChevron}>›</Text>
-                </Pressable>
-              </View>
-              <View style={styles.scenarioCancelWrap}><DialogButton variant="secondary" onPress={closeCloudDialog}>取消</DialogButton></View>
-            </View>
-          )}
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -809,56 +749,37 @@ function OperationRecordCard({ record }: { record: OperationRecord }) {
   );
 }
 
-function OperationRecordsView({ records, onBack }: { records: OperationRecord[]; onBack: () => void }) {
+/** 「操作记录」卡片：没有远程操作时显示空态，有记录后按时间倒序逐条展示。 */
+function OperationRecordsContent({ records }: { records: OperationRecord[] }) {
   return (
-    <SafeAreaView edges={['top']} style={styles.recordsSafeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      <View style={styles.navbar}>
-        <Pressable accessibilityLabel="返回设备详情" hitSlop={12} style={styles.backButton} onPress={onBack}><Back width={10} height={17} /></Pressable>
-        <Text style={styles.navTitle}>操作记录</Text>
-      </View>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.recordsScroll}>
-        {records.map((record) => <OperationRecordCard key={record.id} record={record} />)}
-      </ScrollView>
-    </SafeAreaView>
+    <View style={styles.dataPanel}>
+      <SectionTitle>操作记录</SectionTitle>
+      {records.length > 0
+        ? (
+          <View style={styles.operationRecordList}>
+            {records.map((record) => <OperationRecordCard key={record.id} record={record} />)}
+          </View>
+        )
+        : <Text style={styles.operationRecordsEmpty}>暂无操作记录</Text>}
+    </View>
   );
 }
-
-function DeviceDetailsFallback({ onOpen }: { onOpen: () => void }) {
-  return (
-    <Pressable
-      accessibilityHint="当前页面信息无法解决问题时，继续查看完整设备信息"
-      accessibilityLabel="仍需进一步排查，查看设备详情"
-      accessibilityRole="link"
-      onPress={onOpen}
-      style={({ pressed }) => [styles.deviceDetailsFallback, pressed && styles.pressed]}
-    >
-      <Text style={styles.deviceDetailsFallbackPrompt}>仍需进一步排查？</Text>
-      <View style={styles.deviceDetailsFallbackAction}>
-        <Text style={styles.deviceDetailsFallbackLink}>查看设备详情</Text>
-        <View style={styles.operationChevron}>
-          <OperationChevron
-            color={colorThemes.light.text.link}
-            width={6}
-            height={10}
-          />
-        </View>
-      </View>
-    </Pressable>
-  );
-}
-
 function DeviceView({
-  deviceType,
+  deviceType: initialDeviceType,
   onBack,
   onBackToHome,
+  openFullDetails = false,
   project,
 }: {
   deviceType: DeviceType;
   onBack: () => void;
   onBackToHome: () => void;
+  /** 从工单明细直接进入设备详情；此时返回弹窗的第一个选项是回到工单明细。 */
+  openFullDetails?: boolean;
   project?: ProjectDetailsProject;
 }) {
+  // 设备类型选择弹窗已移除，改为点击控制器标签在 KCECPUC 与 LCE 之间切换。
+  const [deviceType, setDeviceType] = useState<DeviceType>(initialDeviceType);
   const [liftDialog, setLiftDialog] = useState<LiftDialog>('hidden');
   const [liftScenario, setLiftScenario] = useState<LiftScenario>('success');
   const [progress, setProgress] = useState(0);
@@ -872,11 +793,10 @@ function DeviceView({
   const [liftLimitReached, setLiftLimitReached] = useState(false);
   const [restartLimitReached, setRestartLimitReached] = useState(false);
   const [records, setRecords] = useState<OperationRecord[]>([]);
-  const [devicePage, setDevicePage] = useState<'detail' | 'records' | 'projectDetails' | 'exportReportSettings' | 'fullDetails'>(
-    project ? 'projectDetails' : 'detail',
+  const [devicePage, setDevicePage] = useState<'detail' | 'projectDetails' | 'exportReportSettings' | 'fullDetails'>(
+    project ? 'projectDetails' : openFullDetails ? 'fullDetails' : 'detail',
   );
   const [deviceBackDemoVisible, setDeviceBackDemoVisible] = useState(false);
-  const [deviceDynamicsVisible, setDeviceDynamicsVisible] = useState(false);
   const cloudDataTitleRef = useRef<Text>(null);
   const deviceDetailsBackRef = useRef<View>(null);
   const pendingPageFocus = useRef<'detail' | 'projectDetails' | 'exportReportSettings' | null>(
@@ -1087,8 +1007,6 @@ function DeviceView({
     setRestartDialog('hidden');
   };
 
-  if (devicePage === 'records') return <OperationRecordsView records={records} onBack={() => setDevicePage('detail')} />;
-
   const actionDialogs = (
     <>
       <LiftFlowDialog
@@ -1146,7 +1064,10 @@ function DeviceView({
   if (devicePage === 'fullDetails') {
     return (
       <>
-        <DeviceDetailsView backButtonRef={deviceDetailsBackRef} onBack={() => setDeviceBackDemoVisible(true)} />
+        <DeviceDetailsView
+          backButtonRef={deviceDetailsBackRef}
+          onBack={() => setDeviceBackDemoVisible(true)}
+        />
         <DeviceBackDemoDialog
           onClose={() => {
             setDeviceBackDemoVisible(false);
@@ -1156,10 +1077,16 @@ function DeviceView({
             }, 100);
           }}
           onReturnToCloudData={() => {
-            pendingPageFocus.current = 'detail';
             setDeviceBackDemoVisible(false);
+            if (openFullDetails) {
+              onBack();
+              return;
+            }
+            pendingPageFocus.current = 'detail';
             setDevicePage('detail');
           }}
+          returnHint={openFullDetails ? '关闭弹窗并返回工单明细' : undefined}
+          returnLabel={openFullDetails ? '返回CKFM工单' : undefined}
           onReturnToProjectDetails={() => {
             pendingPageFocus.current = 'projectDetails';
             setDeviceBackDemoVisible(false);
@@ -1215,23 +1142,35 @@ function DeviceView({
         backAccessibilityLabel="返回工单明细"
         footer={footerActions}
         onBack={onBack}
-        title="云管家数据"
+        title="AI故障分析"
         titleRef={cloudDataTitleRef}
       >
         <View style={styles.debugCard}>
           <View style={styles.debugTitleRow}>
             <View style={styles.debugIdentity}>
               <Text style={styles.debugSn}>SN000000</Text>
-              <View style={styles.controllerTag}><Text style={styles.controllerTagText}>{deviceType}</Text></View>
-            </View>
-            {records.length > 0 && (
-              <Pressable accessibilityRole="button" onPress={() => setDevicePage('records')} style={({ pressed }) => [styles.operationEntry, pressed && styles.pressed]}>
-                <Text style={styles.operationEntryText}>操作记录</Text>
-                <View style={styles.operationChevron}>
-                  <OperationChevron color={colorThemes.light.text.link} width={6} height={10} />
-                </View>
+              <Pressable
+                accessibilityHint={deviceType === 'KCECPUC' ? '切换为 LCE，仅支持远程呼梯' : '切换为 KCECPUC，支持远程呼梯与远程重启'}
+                accessibilityLabel={`设备类型 ${deviceType}，点击切换`}
+                accessibilityRole="button"
+                hitSlop={8}
+                onPress={() => setDeviceType((current) => (current === 'KCECPUC' ? 'LCE' : 'KCECPUC'))}
+                style={({ pressed }) => [styles.controllerTag, pressed && styles.pressed]}
+              >
+                <Text style={styles.controllerTagText}>{deviceType}</Text>
               </Pressable>
-            )}
+            </View>
+            <Pressable
+              accessibilityHint="查看完整设备信息"
+              accessibilityLabel="云管家数据，查看设备详情"
+              accessibilityRole="button"
+              hitSlop={12}
+              onPress={() => setDevicePage('fullDetails')}
+              style={({ pressed }) => [styles.deviceDetailsEntry, pressed && styles.pressed]}
+            >
+              <Text style={styles.deviceDetailsEntryText}>云管家数据</Text>
+              <EventChevronRight color={colorThemes.light.text.placeholder} width={16} height={16} />
+            </Pressable>
           </View>
           <Text style={styles.debugDescription}>门锁回路瞬时断开，轿厢停于非平层</Text>
         </View>
@@ -1241,22 +1180,59 @@ function DeviceView({
           showsVerticalScrollIndicator={false}
           style={styles.dataScroll}
         >
+          <AiAnalysisCard
+            canRestart={deviceType === 'KCECPUC'}
+            liftResult={records.find((record) => record.type === 'lift')?.result ?? null}
+          />
           <RealtimeContent />
-          <EventSummaryContent onOpenDeviceDynamics={() => setDeviceDynamicsVisible(true)} />
-          <DeviceDetailsFallback onOpen={() => setDevicePage('fullDetails')} />
+          <AiEventTimeline />
+          <OperationRecordsContent records={records} />
         </ScrollView>
       </PageTemplate>
 
-      <DeviceDynamicsDialog
-        onClose={() => setDeviceDynamicsVisible(false)}
-        visible={deviceDynamicsVisible}
-      />
       {actionDialogs}
     </>
   );
 }
 
 const SCREENSHOT_TARGET_ID = 'app-screenshot-target';
+
+/**
+ * 工单明细页的取色。该页出自 China-KFM（file key `Z4pnn8wEnk6D7pu11DBXKd`），用的是
+ * 该文件自己的 `Light/Gray` 色阶，和共享设计系统（China Design System for Mobile）
+ * 的 `text` / `background` 语义族不同源，包里没有对应 token，因此在页面侧按 Figma
+ * 变量名登记一份局部取色，不混进共享 token。
+ */
+const KFM = {
+  /** `Light/Background/Secondary` */
+  pageBackground: '#F5F6F7',
+  /** `Light/Background/Quarternary`，设备图标底色 */
+  iconBackground: '#EEF0F1',
+  /** `Light/Gray/Gray-1` */
+  gray1: '#11161A',
+  /** `Light/Gray/Gray-3` */
+  gray3: '#262E33',
+  /** `Light/Gray/Gray-5` */
+  gray5: '#566066',
+  /** `Light/Gray/Gray-8` */
+  gray8: '#AAAFB3',
+  /** `Light/Gray/Gray-9`，分割线 */
+  gray9: '#D4D7D9',
+  /** `Light/Blue/Blue-4-Base` */
+  blue: '#1450F5',
+  /** `Light/Orange/Orange-4-Base` */
+  orange: '#F98600',
+  /** `Light/Red/Red-5` */
+  red: '#F74343',
+} as const;
+
+/** 设备卡片展开后补充的字段，Figma `2178:33143`。 */
+const orderExtraInfo: readonly { label: string; value: string }[] = [
+  { label: '走修来源', value: '员工创建' },
+  { label: '电梯品牌', value: '奥的斯' },
+  { label: '报修时间', value: '2022-10-21 10:45:23' },
+  { label: '项目地址', value: '福建省三明市梅列区东乾路城投广场' },
+];
 
 /** 「更多操作」中尚未出设计稿的入口，点击后只用占位弹窗给出可见反馈。 */
 const undesignedMoreActionTitles: Record<
@@ -1271,6 +1247,7 @@ export default function App() {
   const [deviceType, setDeviceType] = useState<DeviceType>('KCECPUC');
   const [placeholderTitle, setPlaceholderTitle] = useState<string | null>(null);
   const [selectedProject, setSelectedProject] = useState<ProjectDetailsProject | null>(null);
+  const [openFullDetails, setOpenFullDetails] = useState(false);
   const openMoreAction = (action: MoreActionId) => {
     if (action === 'helpCenter') {
       setScreen('helpCenter');
@@ -1285,10 +1262,17 @@ export default function App() {
   const openDevice = (nextDeviceType: DeviceType) => {
     setDeviceType(nextDeviceType);
     setSelectedProject(null);
+    setOpenFullDetails(false);
+    setScreen('device');
+  };
+  const openDeviceDetailsFromWorkOrder = () => {
+    setSelectedProject(null);
+    setOpenFullDetails(true);
     setScreen('device');
   };
   const openProjectDetails = (project: ProjectDetailsProject) => {
     setSelectedProject(project);
+    setOpenFullDetails(false);
     setScreen('device');
   };
   const returnToHome = () => {
@@ -1300,7 +1284,7 @@ export default function App() {
     <SafeAreaProvider>
       <View id={SCREENSHOT_TARGET_ID} style={styles.safeArea}>
         {screen === 'workOrder'
-          ? <WorkOrderView onOpenDevice={openDevice} />
+          ? <WorkOrderView onOpenDevice={openDevice} onOpenDeviceDetails={openDeviceDetailsFromWorkOrder} />
           : screen === 'home'
             ? (
               <MyDeviceHomeView
@@ -1330,6 +1314,7 @@ export default function App() {
                 deviceType={deviceType}
                 onBack={() => setScreen('workOrder')}
                 onBackToHome={returnToHome}
+                openFullDetails={openFullDetails}
                 project={selectedProject ?? undefined}
               />
             )}
@@ -1357,21 +1342,16 @@ const styles = StyleSheet.create({
   navTitle: { color: '#141414', fontSize: 18, lineHeight: 26, fontWeight: '600' },
   backButton: { position: 'absolute', left: 12, width: 28, height: 40, alignItems: 'flex-start', justifyContent: 'center', zIndex: 2 },
   debugCard: { paddingHorizontal: 16, paddingVertical: 12, gap: 8, backgroundColor: '#FFFFFF', shadowColor: '#000000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 3, elevation: 2, zIndex: 2 },
+  deviceDetailsEntry: { height: 24, flexDirection: 'row', alignItems: 'center', gap: 2 },
+  deviceDetailsEntryText: { color: colorThemes.light.text.link, ...typographyTokens.body14Regular },
   debugTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   debugIdentity: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   debugSn: { color: '#141414', fontSize: 16, lineHeight: 24, fontWeight: '600' },
   controllerTag: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, backgroundColor: LIGHT_BLUE },
   controllerTagText: { color: BLUE, fontSize: 12, lineHeight: 20, fontWeight: '500' },
   debugDescription: { color: '#141414', fontSize: 14, lineHeight: 22 },
-  operationEntry: { height: 24, flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 3 },
-  operationEntryText: { color: BLUE, fontSize: 14, lineHeight: 22 },
-  operationChevron: { transform: [{ rotate: '180deg' }] },
   dataScroll: { flex: 1, backgroundColor: colorThemes.light.background.page },
   dataScrollContent: { flexGrow: 1, gap: dataPanelTokens.cardGap, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 16, backgroundColor: colorThemes.light.background.page },
-  deviceDetailsFallback: { minHeight: 56, paddingHorizontal: 12, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderRadius: 12, backgroundColor: colorThemes.light.background.container },
-  deviceDetailsFallbackPrompt: { minWidth: 0, flexShrink: 1, color: colorThemes.light.text.secondary, ...typographyTokens.body14Regular },
-  deviceDetailsFallbackAction: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  deviceDetailsFallbackLink: { color: colorThemes.light.text.link, ...typographyTokens.body14Regular },
   scrollContent: { paddingBottom: 102, backgroundColor: BG },
   topSection: { paddingHorizontal: 16, paddingTop: 16 },
   deviceTitleRow: { height: 24, flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
@@ -1421,10 +1401,6 @@ const styles = StyleSheet.create({
   dataCategory: { gap: 8 },
   sensorGroups: { gap: 24 },
   sensorGroup: { gap: 8 },
-  deviceDynamicsEntry: { minHeight: 24, justifyContent: 'center', borderRadius: 3 },
-  deviceDynamicsEntryText: { color: colorThemes.light.text.link, ...typographyTokens.body14Regular },
-  eventSummaryHeading: { gap: 4 },
-  eventSummaryDescription: { color: colorThemes.light.text.placeholder, ...typographyTokens.footer12Regular },
   sensorGroupTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   sensorGroupDivider: { minWidth: 0, flex: 1, height: 0, borderTopWidth: 1, borderTopColor: colorThemes.light.border.componentStroke, borderStyle: 'dashed' },
   sensorGroupTitle: { color: colorThemes.light.text.primary, ...typographyTokens.footer12Regular },
@@ -1441,20 +1417,6 @@ const styles = StyleSheet.create({
   expandMoreText: { color: colorThemes.light.text.secondary, ...typographyTokens.body14Regular },
   expandChevronFrame: { width: 10, height: 6, alignItems: 'center', justifyContent: 'center' },
   expandChevronOpen: { transform: [{ rotate: '180deg' }] },
-  eventSummaryTable: { overflow: 'hidden', borderWidth: 1, borderColor: colorThemes.light.table.border, borderRadius: 6, backgroundColor: colorThemes.light.background.container },
-  eventSummaryRow: { flexDirection: 'row' },
-  eventSummaryBodyRow: { height: 44, backgroundColor: colorThemes.light.background.container },
-  eventSummaryAlternateRow: { backgroundColor: colorThemes.light.table.alternateRowBackground },
-  eventSummaryCell: { minWidth: 0 },
-  eventSummaryLabelColumn: { width: 84 },
-  eventSummaryLabelCell: { paddingLeft: 10, paddingRight: 4, alignItems: 'stretch' },
-  eventSummaryValueColumn: { flex: 1 },
-  eventSummaryHeaderCell: { minHeight: 56, paddingHorizontal: 10, paddingVertical: 6, alignItems: 'center', justifyContent: 'center', backgroundColor: colorThemes.light.table.headerBackground },
-  eventSummaryHeaderText: { width: '100%', color: colorThemes.light.text.primary, textAlign: 'center', ...typographyTokens.body14Medium },
-  eventSummaryBodyCell: { height: 44, paddingHorizontal: 4, paddingVertical: 4, alignItems: 'flex-start', justifyContent: 'center' },
-  eventSummaryBodyText: { width: '100%', color: colorThemes.light.text.secondary, ...typographyTokens.body14Regular },
-  eventSummaryLabelText: { textAlign: 'left' },
-  eventSummaryValueText: { textAlign: 'center' },
   chart: { height: 176, paddingTop: 12, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
   barColumn: { flex: 1, alignItems: 'center', justifyContent: 'flex-end' },
   bar: { width: 18, minHeight: 12, borderRadius: 5, backgroundColor: '#7296F9' },
@@ -1480,11 +1442,6 @@ const styles = StyleSheet.create({
   scenarioWarningIcon: { backgroundColor: '#FFF7E8' },
   scenarioSuccessMark: { color: '#12A150', fontSize: 19, lineHeight: 22, fontWeight: '700' },
   scenarioWarningMark: { color: '#F59A23', fontSize: 19, lineHeight: 22, fontWeight: '700' },
-  deviceTypeIcon: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center', borderRadius: 8 },
-  deviceTypeKceIcon: { backgroundColor: '#EEF3FF' },
-  deviceTypeLceIcon: { backgroundColor: '#EAF8F0' },
-  deviceTypeKceMark: { color: BLUE, fontSize: 16, lineHeight: 22, fontWeight: '700' },
-  deviceTypeLceMark: { color: '#12A150', fontSize: 16, lineHeight: 22, fontWeight: '700' },
   scenarioCopy: { flex: 1, gap: 2 },
   scenarioTitle: { color: '#141414', fontSize: 15, lineHeight: 22, fontWeight: '600' },
   scenarioDescription: { color: '#8F9195', fontSize: 11, lineHeight: 17 },
@@ -1507,9 +1464,9 @@ const styles = StyleSheet.create({
   progressErrorIcon: { width: 36, height: 22, alignItems: 'center', justifyContent: 'center' },
   currentFloorText: { width: '100%', color: '#676A72', fontSize: 16, lineHeight: 24, textAlign: 'center' },
 
-  recordsSafeArea: { flex: 1, backgroundColor: '#F5F7FA' },
-  recordsScroll: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 16, gap: 8 },
-  operationCard: { width: '100%', paddingHorizontal: 10, paddingVertical: 8, gap: 8, borderRadius: 8, backgroundColor: '#FFFFFF' },
+  operationRecordList: { gap: 8 },
+  operationRecordsEmpty: { paddingVertical: 16, textAlign: 'center', color: colorThemes.light.text.placeholder, ...typographyTokens.body14Regular },
+  operationCard: { width: '100%', paddingHorizontal: 10, paddingVertical: 8, gap: 8, borderRadius: 8, backgroundColor: colorThemes.light.background.page },
   operationCardHeader: { height: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   operationCardTitle: { flex: 1, color: '#141414', fontSize: 16, lineHeight: 24, fontWeight: '500' },
   operationResultTag: { paddingHorizontal: 8, paddingVertical: 1, borderRadius: 13 },
@@ -1523,60 +1480,73 @@ const styles = StyleSheet.create({
   operationMetaLabel: { color: '#676A72', fontSize: 14, lineHeight: 22 },
   operationMetaValue: { color: '#141414', fontSize: 14, lineHeight: 22, textAlign: 'right' },
 
-  workOrderSafeArea: { flex: 1, backgroundColor: '#F5F5F5' },
-  workOrderNav: { height: 48, alignItems: 'center', justifyContent: 'center', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E8E8E8', backgroundColor: '#FFFFFF' },
-  workOrderBack: { position: 'absolute', left: 20 },
-  workOrderTitle: { color: '#111827', fontSize: 18, lineHeight: 26, fontWeight: '600' },
-  workOrderMore: { position: 'absolute', right: 16, color: '#2772EE', fontSize: 14, lineHeight: 22 },
-  workOrderScroll: { paddingBottom: 96, gap: 8 },
-  workOrderCard: { paddingHorizontal: 16, paddingVertical: 14, backgroundColor: '#FFFFFF' },
+  /*
+   * 工单明细页，Figma China-KFM：已报修态 `2000:19798`、设备卡片展开态 `2178:33143`、
+   * IoT 变体 `20141:26924`。排版用该文件的 Paragraph/Heading 级别：
+   * H4-17-Bold（17/22 Semibold）、P1-15-Bold（15/20 Semibold）、P1-15（15/20）、
+   * P2-13（13/18）、P4-10-Bold（10/12 Semibold）。
+   */
+  workOrderSafeArea: { flex: 1, backgroundColor: KFM.pageBackground },
+  /** Figma `I2000:19803;4:1446`：导航栏 40 高（状态栏之外），标题居中，右侧无操作项。 */
+  workOrderNav: { height: 40, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF' },
+  workOrderBack: { position: 'absolute', left: 12 },
+  workOrderTitle: { color: KFM.gray1, fontSize: 17, lineHeight: 22, fontWeight: '600' },
+  /** Figma：卡片左右边距 12、卡片间距 8；底部给吸底操作区让位。 */
+  workOrderScroll: { paddingHorizontal: 12, paddingTop: 12, paddingBottom: 96, gap: 8 },
+  workOrderCard: { paddingHorizontal: 12, paddingVertical: 12, borderRadius: 6, backgroundColor: '#FFFFFF' },
   orderHeading: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
-  orderElevatorIcon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 10, borderWidth: 1, borderColor: '#E5EAF1', backgroundColor: '#F5F7FA' },
-  orderHeadingText: { flex: 1, alignItems: 'flex-start' },
-  orderName: { color: '#17223B', fontSize: 15, lineHeight: 22, fontWeight: '600' },
-  orderProject: { color: '#48556A', fontSize: 12, lineHeight: 18 },
-  pendingTag: { marginTop: 3, paddingHorizontal: 5, paddingVertical: 1, borderWidth: 1, borderColor: '#FF9C4A', borderRadius: 2, backgroundColor: '#FFF7ED' },
-  pendingTagText: { color: '#F47B20', fontSize: 11, lineHeight: 16 },
-  workOrderDivider: { height: StyleSheet.hairlineWidth, marginVertical: 12, backgroundColor: '#E8EBEF' },
-  orderInfoRow: { height: 26, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  orderLabel: { color: '#758195', fontSize: 13, lineHeight: 20 },
-  orderValue: { color: '#3C4B63', fontSize: 13, lineHeight: 20 },
-  copyText: { color: '#2772EE', fontSize: 11 },
-  orderLink: { marginTop: 3, color: '#58667A', fontSize: 12, lineHeight: 18 },
-  faultTitle: { color: '#101827', fontSize: 15, lineHeight: 22, fontWeight: '600' },
-  dateRow: { marginTop: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  dateText: { color: '#6D788A', fontSize: 11, lineHeight: 18 },
-  dateMaintenance: { color: '#2772EE' },
-  dateMarker: { width: 46, height: 18, marginTop: 5, marginLeft: '55%', borderRadius: 5, backgroundColor: '#E1EDFF' },
-  floorText: { marginTop: 8, color: '#697689', fontSize: 12, lineHeight: 18 },
-  remotePrompt: { minHeight: 54, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#FFFFFF' },
-  cloudGlyph: { width: 20, height: 20, alignItems: 'center', justifyContent: 'center' },
-  cloudGlyphText: { color: '#2772EE', fontSize: 23, lineHeight: 23, transform: [{ rotate: '-20deg' }] },
-  remotePromptText: { flex: 1, color: '#2772EE', fontSize: 13, lineHeight: 18, fontWeight: '600' },
-  alertDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#F23D4F' },
-  remoteChevron: { color: '#A7AFBA', fontSize: 24, lineHeight: 24 },
-  statusCard: { minHeight: 64, paddingHorizontal: 16, paddingVertical: 12, flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: '#FFFFFF' },
-  statusGlyph: { width: 24, height: 24, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: '#2772EE' },
-  statusGlyphText: { color: '#FFFFFF', fontSize: 16, lineHeight: 20 },
-  statusCopy: { flex: 1 },
-  statusTitle: { color: '#2772EE', fontSize: 14, lineHeight: 20, fontWeight: '600' },
-  statusTime: { color: '#8995A8', fontSize: 11, fontWeight: '400' },
-  statusDetail: { color: '#536076', fontSize: 12, lineHeight: 18 },
-  workOrderBottomBar: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 12, flexDirection: 'row', gap: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#E1E5EA', backgroundColor: '#FFFFFF' },
-  workOrderBottomButton: { flex: 1, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 7, borderWidth: 1, borderColor: '#D6DCE4', backgroundColor: '#FFFFFF' },
-  rejectButton: { borderColor: '#F56B73' },
-  acceptButton: { borderColor: BLUE, backgroundColor: BLUE },
-  transferText: { color: '#3B4658', fontSize: 14, fontWeight: '500' },
-  rejectText: { color: '#F04E5D', fontSize: 14, fontWeight: '500' },
-  acceptText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
-  cloudDialogCard: { width: '100%', maxWidth: 270, overflow: 'hidden', borderRadius: 14, backgroundColor: '#FFFFFF' },
-  cloudDialogContent: { alignItems: 'center', paddingHorizontal: 24, paddingTop: 24, paddingBottom: 20, gap: 8 },
-  cloudDialogTitle: { color: '#151B27', fontSize: 17, lineHeight: 24, fontWeight: '600', textAlign: 'center' },
-  cloudDialogBody: { color: '#7A8494', fontSize: 14, lineHeight: 21, textAlign: 'center' },
-  cloudDialogFooter: { height: 48, flexDirection: 'row', alignItems: 'stretch', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#E5E8ED' },
-  cloudDialogFooterButton: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  cloudDialogFooterDivider: { width: StyleSheet.hairlineWidth, backgroundColor: '#E5E8ED' },
-  cloudCancelText: { color: '#5D687B', fontSize: 14, fontWeight: '500' },
-  cloudOpenText: { color: '#2772EE', fontSize: 14, fontWeight: '600' },
+  /** Figma `2000:19850`：`62×62`、圆角 5.5357、底色 `Background/Quarternary`；其中 `40×40` 的电梯图标居中（`2000:19851`）。 */
+  orderElevatorIcon: { width: 62, height: 62, alignItems: 'center', justifyContent: 'center', borderRadius: 5.5357, backgroundColor: KFM.iconBackground },
+  /** Figma：标题 20 高、项目名 18 高、状态标签 16 高，之间各隔 4，合计 62，与图标等高。 */
+  orderHeadingText: { flex: 1, alignItems: 'flex-start', gap: 4 },
+  orderName: { color: KFM.gray3, fontSize: 15, lineHeight: 20, fontWeight: '600' },
+  orderProject: { color: KFM.gray5, fontSize: 13, lineHeight: 18 },
+  /** Figma `I2000:19836;...;57:1648`：16 高、`4/1` 内边距、圆角 2、描边与文字同为 Orange-4。 */
+  pendingTag: { height: 16, paddingHorizontal: 4, paddingVertical: 1, justifyContent: 'center', borderWidth: 1, borderColor: KFM.orange, borderRadius: 2 },
+  pendingTagText: { color: KFM.orange, fontSize: 10, lineHeight: 12, fontWeight: '600' },
+  /** Figma `2000:19852`：卡片内分割线，左右各缩进 12。 */
+  workOrderDivider: { height: StyleSheet.hairlineWidth, marginVertical: 12, backgroundColor: KFM.gray9 },
+  /** Figma `2178:33151`：信息行之间间距 16。 */
+  orderInfoList: { gap: 16 },
+  orderInfoRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
+  orderLabel: { color: KFM.gray5, fontSize: 15, lineHeight: 20 },
+  orderValue: { minWidth: 0, flexShrink: 1, color: KFM.gray3, fontSize: 15, lineHeight: 20, textAlign: 'right' },
+  copyText: { color: KFM.blue },
+  orderMoreToggle: { marginTop: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
+  orderMoreLabel: { color: KFM.gray5, fontSize: 13, lineHeight: 18 },
+  orderMoreIconUp: { transform: [{ rotate: '180deg' }] },
+  /** Figma `20245:95383` 所在行：白卡、16 图标 + P1-15 品牌色文案 + 右侧 chevron。 */
+  remotePrompt: { minHeight: 52, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 6, backgroundColor: '#FFFFFF' },
+  remotePromptText: { flex: 1, color: KFM.blue, fontSize: 15, lineHeight: 20 },
+  /** Figma `2079:23585`：52 高白卡，单行步骤。 */
+  statusCard: { minHeight: 52, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 6, backgroundColor: '#FFFFFF' },
+  statusGlyph: { width: 20, height: 20, alignItems: 'center', justifyContent: 'center', borderRadius: 10, backgroundColor: KFM.blue },
+  statusTitle: { color: KFM.blue, fontSize: 15, lineHeight: 20, fontWeight: '600' },
+  statusTime: { color: KFM.blue, fontSize: 13, lineHeight: 18 },
+  /** Figma `2603:28258`：72 高吸底操作区，`Drop Shadow/2` = `0 -2 4 rgba(17,22,26,0.06)`。 */
+  workOrderBottomBar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 72,
+    paddingHorizontal: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#FFFFFF',
+    shadowColor: KFM.gray1,
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 8,
+  },
+  /** Figma `I2603:28258;833:2599`：32 高、`16/6` 内边距、圆角 4、描边 Gray-8。 */
+  workOrderBottomButton: { flex: 1, minHeight: 32, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, paddingVertical: 6, borderRadius: 4, borderWidth: 1, borderColor: KFM.gray8, backgroundColor: '#FFFFFF' },
+  rejectButton: { borderColor: KFM.red },
+  acceptButton: { borderColor: KFM.blue, backgroundColor: KFM.blue },
+  transferText: { color: KFM.gray5, fontSize: 15, lineHeight: 20 },
+  rejectText: { color: KFM.red, fontSize: 15, lineHeight: 20 },
+  acceptText: { color: '#FFFFFF', fontSize: 15, lineHeight: 20 },
   pressed: { opacity: 0.72 },
 });

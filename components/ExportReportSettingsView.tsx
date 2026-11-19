@@ -302,8 +302,6 @@ function ComponentPanelBody({
               shape="round"
               size="large"
               testID={`${idPrefix}-dimension-${id}`}
-              uncheckedBorder="stroke"
-              variant={selected ? 'lightOutline' : 'light'}
             />
           );
         })}
@@ -507,8 +505,6 @@ export function ExportReportSettingsView({
                       shape="round"
                       size="large"
                       testID={`analysis-${id}`}
-                      uncheckedBorder="stroke"
-                      variant={selected ? 'lightOutline' : 'light'}
                     />
                   );
                 })}
@@ -556,8 +552,6 @@ export function ExportReportSettingsView({
                       shape="round"
                       size="large"
                       testID={`report-body-${id}`}
-                      uncheckedBorder="stroke"
-                      variant={selected ? 'lightOutline' : 'light'}
                     />
                   );
                 })}
