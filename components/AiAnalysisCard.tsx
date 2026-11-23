@@ -98,15 +98,8 @@ export function AiAnalysisCard({
 
   return (
     <View style={styles.card}>
-      <DataPanelTitle
-        action={(
-          <View style={styles.confidenceTag}>
-            <Text style={styles.confidenceText}>置信度 {analysis.confidence}%</Text>
-          </View>
-        )}
-      >
-        AI分析结果
-      </DataPanelTitle>
+      {/* 置信度标签暂时移除；数据 `confidence` 与 `confidenceTag` 样式保留，恢复时在标题 `action` 里渲染即可。 */}
+      <DataPanelTitle>AI分析结果</DataPanelTitle>
 
       <View accessibilityLabel="原因分析" accessibilityLiveRegion="polite" style={styles.causeBlock}>
         <Text style={styles.causeText}>{analysis.cause}</Text>

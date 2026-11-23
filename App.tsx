@@ -631,14 +631,6 @@ function WorkOrderView({
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.workOrderScroll}>
-        {/*
-          「AI辅助远程设备调试」入口置顶，胶囊横幅样式。点击后直接进入「AI故障分析」页
-          （设备类型默认 KCECPUC，不再经过确认弹窗和设备类型选择）。
-        */}
-        <AiAssistBanner
-          onPress={() => onOpenDevice('KCECPUC')}
-          title="去现场之前，试试先用AI分析和远程调试。"
-        />
         <View style={styles.workOrderCard}>
           <View style={styles.orderHeading}>
             <View style={styles.orderElevatorIcon}>
@@ -690,7 +682,7 @@ function WorkOrderView({
         {/*
           云管家入口。该行只在 IoT 变体里定义（Figma `20141:26924`，原文案为
           `查看云管家数据，帮助快速修梯`，现简化为「查看云管家数据」），用户给的非 IoT 稿里没有这一行。
-          点击后直接进入设备详情；进入「AI故障分析」的路径改由页面顶部的
+          点击后直接进入设备详情；进入「AI故障分析」的路径改由其下方的
           「AI辅助远程设备调试」横幅承接。
         */}
         <Pressable accessibilityRole="button" onPress={onOpenDeviceDetails} style={({ pressed }) => [styles.remotePrompt, pressed && styles.pressed]}>
@@ -699,6 +691,14 @@ function WorkOrderView({
           <EventChevronRight color={KFM.gray8} width={16} height={16} />
         </Pressable>
 
+        {/*
+          「AI辅助远程设备调试」入口位于「查看云管家数据」下方、工单进度之上，胶囊横幅样式。点击后直接进入「AI故障分析」页
+          （设备类型默认 KCECPUC，不再经过确认弹窗和设备类型选择）。
+        */}
+        <AiAssistBanner
+          onPress={() => onOpenDevice('KCECPUC')}
+          title="去现场之前，试试先用AI分析和远程调试。"
+        />
 
         {/* 工单进度（Figma `2079:23588` Step）：蓝色圆点 + 状态与时间同为品牌色。 */}
         <View style={styles.statusCard}>
@@ -1081,9 +1081,10 @@ function DeviceView({
       <>
         <DeviceDetailsView
           backButtonRef={deviceDetailsBackRef}
-          onBack={() => setDeviceBackDemoVisible(true)}
+          onBack={() => (SHOW_DEVICE_BACK_DEMO_DIALOG ? setDeviceBackDemoVisible(true) : onBack())}
         />
-        <DeviceBackDemoDialog
+        {/* 演示场景选择弹窗暂时关闭：设备详情返回时直接回到 CKFM 工单明细。代码保留，把开关改回 true 即可恢复。 */}
+        {SHOW_DEVICE_BACK_DEMO_DIALOG ? <DeviceBackDemoDialog
           onClose={() => {
             setDeviceBackDemoVisible(false);
             setTimeout(() => {
@@ -1108,7 +1109,7 @@ function DeviceView({
             setDevicePage('projectDetails');
           }}
           visible={deviceBackDemoVisible}
-        />
+        /> : null}
       </>
     );
   }
@@ -1228,6 +1229,8 @@ const SCREENSHOT_TARGET_ID = 'app-screenshot-target';
  * 页面截图工具只在本地开发版保留。线上发布（`build:pages`）会设置
  * `EXPO_PUBLIC_HIDE_SCREENSHOT_TOOL=1`，此时不渲染该组件。
  */
+/** 设备详情返回时是否弹出「Demo 演示场景选择」；关闭时直接返回 CKFM 工单明细。 */
+const SHOW_DEVICE_BACK_DEMO_DIALOG = false;
 const SHOW_SCREENSHOT_TOOL = process.env.EXPO_PUBLIC_HIDE_SCREENSHOT_TOOL !== '1';
 
 /**
